@@ -2,39 +2,56 @@ package ru.ys.mfc;
 
 public class Settings {
 
-    private static String urlString = "http://10.2.139.25/mkgu/server/";
-    private static String getFreeTime = "getfreetime";
-    private static String getManagedOptions = "getmanagedoptions";
-    private static String getOrderStatus = "cpgu/action/getOrderStatusTitle";
-    private static String getMkguFormVersion = "cpgu/action/getMkguFormVersion";
-    private static String getMkguQuestionnaires = "cpgu/action/getMkguQuestionnaires";
-    private static String postMkguQuestionnaires = "cpgu/action/sendMkguFormAnswers";
+    private static Settings instance;
 
-    public static String getUrlString() {
+    private String urlString = "http://10.2.139.25/mkgu/server/";
+    private String getFreeTime = "getfreetime";
+    private String getManagedOptions = "getmanagedoptions";
+    private String getOrderStatus = "cpgu/action/getOrderStatusTitle";
+    private String getMkguFormVersion = "cpgu/action/getMkguFormVersion";
+    private String getMkguQuestionnaires = "cpgu/action/getMkguQuestionnaires";
+    private String postMkguQuestionnaires = "cpgu/action/sendMkguFormAnswers";
+    private String okato = "50401000000";
+
+    private Settings() {
+
+    }
+
+    public static Settings getInstance() {
+        if (instance == null)
+            instance = new Settings();
+        return instance;
+    }
+
+    public String getOkato() {
+        return okato;
+    }
+
+    public String getUrlString() {
         return urlString;
     }
 
-    public static String getGetFreeTime() {
+    public String getGetFreeTime() {
         return getFreeTime;
     }
 
-    public static String getGetManagedOptions() {
+    public String getGetManagedOptions() {
         return getManagedOptions;
     }
 
-    public static String getGetOrderStatus() {
+    public String getGetOrderStatus() {
         return getOrderStatus;
     }
 
-    public static String getGetMkguFormVersion() {
+    public String getGetMkguFormVersion() {
         return getMkguFormVersion;
     }
 
-    public static String getGetMkguQuestionnaires() {
+    public String getGetMkguQuestionnaires() {
         return getMkguQuestionnaires;
     }
 
-    public static String getPostMkguQuestionnaires() {
+    public String getPostMkguQuestionnaires() {
         return postMkguQuestionnaires;
     }
 }
