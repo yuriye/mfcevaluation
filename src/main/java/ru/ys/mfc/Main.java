@@ -5,6 +5,7 @@ import ru.ys.mfc.equipment.InputDevice;
 import ru.ys.mfc.model.Question;
 import ru.ys.mfc.model.QuestionsFactory;
 import ru.ys.mfc.util.QuestionsFactoryFactory;
+import ru.ys.mfc.view.ProgressFrame;
 
 import javax.swing.*;
 import java.util.List;
@@ -14,6 +15,7 @@ public class Main {
     private static InputDevice inputDevice = InputDevice.getInstance();
     private static QuestionsFactory questionsFactory;
     private static boolean isMock = false;
+    private static ProgressFrame progressFrame;
 
     public static void main(String[] args) {
         try {
@@ -24,6 +26,8 @@ public class Main {
             } else
                 questionsFactory = QuestionsFactoryFactory
                         .getQuestionsFactory("ru.ys.mfc.model.MKGUQuestions");
+
+            progressFrame = new ProgressFrame("Оценка качеcтва оказания услуг");
 
             List<Question> questions = questionsFactory.getQuestions();
 

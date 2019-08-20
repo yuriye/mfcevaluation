@@ -9,12 +9,16 @@ public class ProgressFrame extends JFrame {
 
     public ProgressFrame(String title) {
         super(title);
-        this.setTitle("Оценка качеcтва оказания услуг");
+//        this.setTitle("Оценка качеcтва оказания услуг");
         this.informStringLabel.setText("Начинаем...");
-        this.panel.setPreferredSize(new Dimension(400, 200));
+        this.panel.setPreferredSize(new Dimension(400, 150));
         this.panel.add(this.informStringLabel);
         this.add(this.panel, "North");
         this.pack();
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    }
+
+    public void setInformString(String informString) {
+        this.informStringLabel.setText(informString);
     }
 }
