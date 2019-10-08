@@ -12,7 +12,7 @@ import java.util.List;
 
 public class Main {
 
-    private static InputDevice inputDevice = InputDevice.getInstance();
+    private static InputDevice inputDevice;
     private static QuestionsFactory questionsFactory;
     private static boolean isMock = false;
     private static ProgressFrame progressFrame;
@@ -21,8 +21,10 @@ public class Main {
         try {
             if (args.length > 0 && "m".equals(args[0])) {
                 isMock = true;
+
                 questionsFactory = QuestionsFactoryFactory
                         .getQuestionsFactory("ru.ys.mfc.model.MockQuestions");
+                System.out.println("Mock variant!");
             } else
                 questionsFactory = QuestionsFactoryFactory
                         .getQuestionsFactory("ru.ys.mfc.model.MKGUQuestions");
@@ -37,13 +39,15 @@ public class Main {
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, ExceptionUtils.getStackTrace(e));
             System.exit(1);
-        } finally {
-            inputDevice.disconnect();
         }
     }
 
     private static String askQuestions(List<Question> questions) {
         String response = "";
+        if (inputDevice == null) {
+            JOptionPane.showMessageDialog(null, "Устройство не найдено!");
+            System.exit(1);
+        }
 
         questions.stream().forEach(c -> {
             System.out.println(c.getTitle() + ":" + c.getDescription());

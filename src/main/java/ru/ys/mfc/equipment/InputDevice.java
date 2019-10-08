@@ -85,4 +85,7 @@ public class InputDevice {
         return tablet;
     }
 
+    public UsbDevice getUsbDevice() {
+        return usbDevice;
+    }
 }

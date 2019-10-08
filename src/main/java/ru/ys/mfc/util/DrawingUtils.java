@@ -1,7 +1,8 @@
 package ru.ys.mfc.util;
 
+import com.WacomGSS.STU.Protocol.Capability;
 import com.WacomGSS.STU.Protocol.PenData;
-//import com.ys.mfc.EstimationQuestionForm;
+import ru.ys.mfc.view.EstimationForm;
 
 import java.awt.*;
 import java.awt.geom.Point2D;
@@ -90,12 +91,19 @@ public class DrawingUtils {
         return retarr;
     }
 
-//    public static Point2D.Float tabletToScreen(PenData penData, EstimationQuestionForm estimationQuestionForm) {
-//        // Screen means LCD screen of the tablet.
-//        return new Point2D.Float(
-//                (float) penData.getX() * estimationQuestionForm.getCapability().getScreenWidth() / estimationQuestionForm.getCapability().getTabletMaxX(),
-//                (float) penData.getY() * estimationQuestionForm.getCapability().getScreenHeight() / estimationQuestionForm.getCapability().getTabletMaxY());
-//    }
-    //
+    public static Point2D.Float tabletToScreen(PenData penData, EstimationForm estimationQuestionForm) {
+        // Screen means LCD screen of the tablet.
+        return new Point2D.Float(
+                (float) penData.getX() * estimationQuestionForm.getCapability().getScreenWidth() / estimationQuestionForm.getCapability().getTabletMaxX(),
+                (float) penData.getY() * estimationQuestionForm.getCapability().getScreenHeight() / estimationQuestionForm.getCapability().getTabletMaxY());
+    }
+
+    public static Point2D.Float tabletToScreen(PenData penData, Capability capability) {
+        // Screen means LCD screen of the tablet.
+        return new Point2D.Float(
+                (float) penData.getX() * capability.getScreenWidth() / capability.getTabletMaxX(),
+                (float) penData.getY() * capability.getScreenHeight() / capability.getTabletMaxY());
+    }
+
 
 }
