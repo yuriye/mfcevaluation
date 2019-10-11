@@ -26,11 +26,11 @@ public class InputDevice {
     }
 
     public static synchronized InputDevice getInstance() {
-        if (inputDeviceInstance == null) {
-            inputDeviceInstance = new InputDevice();
-        }
         try {
-            inputDeviceInstance.init();
+            if (inputDeviceInstance == null) {
+                inputDeviceInstance = new InputDevice();
+                inputDeviceInstance.init();
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -38,11 +38,11 @@ public class InputDevice {
     }
 
     public void init() throws IOException {
-
-        //We are need wgssSTU.dll for the Tablet working
         try {
             System.loadLibrary("wgssSTU");
-        } catch (UnsatisfiedLinkError var17) {
+        } catch (UnsatisfiedLinkError ue) {
+            System.out.println("Попытка загрузить wgssSTU не удалась");
+            ue.printStackTrace();
             String name = "wgssSTU.dll";
             Path path = FileSystems.getDefault().getPath(".", name);
 
@@ -53,6 +53,8 @@ public class InputDevice {
                 Files.copy(input, path, new CopyOption[0]);
                 System.loadLibrary("wgssSTU");
             } catch (IOException e) {
+                System.out.println("2 попытка загрузить wgssSTU не удалась");
+                e.printStackTrace();
                 throw e;
             }
         }
@@ -64,6 +66,7 @@ public class InputDevice {
             tablet.setInkingMode(Off);
             tablet.setClearScreen();
         } catch (Exception e) {
+            e.printStackTrace();
             JOptionPane.showMessageDialog((Component) null, ExceptionUtils.getStackTrace(e));
             System.exit(1);
         }

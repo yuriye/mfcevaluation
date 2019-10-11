@@ -4,7 +4,7 @@ import ru.ys.mfc.util.DrawingUtils;
 
 import java.awt.*;
 
-class Button {
+public class Button {
     private Rectangle bounds; // in Screen coordinates
     private String text;
     private ButtonType buttonType = ButtonType.NAV;

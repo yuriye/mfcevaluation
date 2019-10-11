@@ -52,13 +52,13 @@ public class DrawingUtils {
                 else {
                     textY = 13;
                 }
-
+                System.out.println(textY);
                 for (int i = 0; i < textParts.size(); i++) {
                     gfx.drawString(textParts.get(i), textX, textY + i * textHeight + lineSpacing);
                 }
             }
         } else {
-//        textX = x + (width - textWidth) / 2;
+            textX = x + (width - textWidth) / 2;
             textY = y + (height - textHeight) / 2 + fm.getAscent();
             gfx.drawString(text, textX, textY);
         }

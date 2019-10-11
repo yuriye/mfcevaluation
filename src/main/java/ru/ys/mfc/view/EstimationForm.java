@@ -5,6 +5,7 @@ import com.WacomGSS.STU.Protocol.*;
 import com.WacomGSS.STU.STUException;
 import com.WacomGSS.STU.Tablet;
 import ru.ys.mfc.equipment.InputDevice;
+import ru.ys.mfc.equipment.TabletUtils;
 import ru.ys.mfc.util.DrawingUtils;
 import ru.ys.mfc.model.Answer;
 
@@ -199,17 +200,7 @@ public class EstimationForm implements ITabletHandler {
     }
 
     void dispose() {
-        // Ensure that you correctly disconnect from the tablet, otherwise you are
-        // likely to get errors when wanting to connect a second time.
-        if (this.tablet != null) {
-            try {
-                this.tablet.setInkingMode(InkingMode.Off);
-                this.tablet.setClearScreen();
-            } catch (Throwable ignored) {
-            }
-            this.tablet.disconnect();
-            this.tablet = null;
-        }
+        TabletUtils.dispose(tablet);
     }
 
     public Capability getCapability() {
