@@ -1,6 +1,7 @@
 package ru.ys.mfc;
 
 import com.WacomGSS.STU.STUException;
+import com.WacomGSS.STU.Tablet;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import ru.ys.mfc.equipment.InputDevice;
 import ru.ys.mfc.model.Question;
@@ -8,7 +9,6 @@ import ru.ys.mfc.model.QuestionsFactory;
 import ru.ys.mfc.util.QuestionsFactoryFactory;
 import ru.ys.mfc.view.ProgressFrame;
 import ru.ys.mfc.view.QuestionForm;
-import ru.ys.mfc.view.Button;
 
 import javax.swing.*;
 import java.util.List;
@@ -37,6 +37,16 @@ public class Main {
             String response = askQuestions(questions);
             if (!isMock)
                 sendResponse(response);
+
+            Tablet tablet = InputDevice.getInstance().getTablet();
+            if (tablet != null && tablet.isConnected()) {
+                tablet.setClearScreen();
+                tablet.reset();
+//                tablet.disconnect();
+
+            }
+
+            System.exit(0);
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, ExceptionUtils.getStackTrace(e));
             System.exit(1);
@@ -59,23 +69,21 @@ public class Main {
 //                    + ":" + c1.getTitle()
 //                    + ":" + c1.getAltTitle()));
 //        });
-
-        for (Question question:
-             questions) {
-            try {
-                QuestionForm questionForm = new QuestionForm(question.getTitle());
+        QuestionForm questionForm = null;
+        try {
+            for (Question question :
+                    questions) {
+                questionForm = new QuestionForm(question.getTitle());
                 questionForm.waitForButtonPress();
                 System.out.println(question.getTitle());
-                System.out.println(questionForm.getPressedButton());
-
                 if (questionForm.getPressedButton().getId().equals("cancel"))
                     System.exit(1);
 
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } catch (STUException e) {
-                e.printStackTrace();
             }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (STUException e) {
+            e.printStackTrace();
         }
 
         return response;

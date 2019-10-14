@@ -2,7 +2,6 @@ package ru.ys.mfc.view;
 
 import com.WacomGSS.STU.ITabletHandler;
 import com.WacomGSS.STU.Protocol.*;
-
 import com.WacomGSS.STU.STUException;
 import com.WacomGSS.STU.Tablet;
 import ru.ys.mfc.equipment.InputDevice;
@@ -23,10 +22,11 @@ public class QuestionForm implements ITabletHandler {
     private ru.ys.mfc.view.Button answerButton;
     private ru.ys.mfc.view.Button cancelButton;
     private ru.ys.mfc.view.Button pressedButton;
+    private boolean doNotProcessing = false;
 
 
     public QuestionForm(String indicatorDescription) throws InterruptedException, STUException {
-//        InputDevice inputDevice = InputDevice.getInstance();
+        doNotProcessing = false;
         tablet = InputDevice.getInstance().getTablet();
 //        if (tablet.isSupported(OperationModeType.KeyPad))
 //            System.out.println("KeyPad supported");
@@ -99,7 +99,7 @@ public class QuestionForm implements ITabletHandler {
                 capability.getScreenWidth() / 2 - 2,
                 capability.getScreenHeight() / 3 - 2);
 
-        cancelButton = new Button(gfx, cancelButtonRectangle, "Прервать процесс оценки", ButtonType.CANCELESTIMATION, "cancel");
+        cancelButton = new Button(gfx, cancelButtonRectangle, "Прервать оценку", ButtonType.CANCELESTIMATION, "cancel");
 
         Rectangle answerButtonRectangle = new Rectangle(capability.getScreenWidth() / 2 + 2,
                 capability.getScreenHeight() - capability.getScreenHeight() / 3 + 2,
@@ -142,29 +142,15 @@ public class QuestionForm implements ITabletHandler {
         }
         tablet.endImageData();
         pressedButton = null;
-
     }
 
     public ru.ys.mfc.view.Button getPressedButton() {
         return pressedButton;
     }
 
-    private void detectPressedButton(PenData penData) {
-        Point2D.Float point = DrawingUtils.tabletToScreen(penData, capability);
-        if (cancelButton.getBounds().contains(Math.round(point.getX()), Math.round(point.getY())))
-            pressedButton = cancelButton;
-        else if (answerButton.getBounds().contains(Math.round(point.getX()), Math.round(point.getY())))
-            pressedButton = answerButton;
-        else pressedButton = null;
-        if (pressedButton != null)
-            System.out.println(pressedButton.getId());
-        else
-            System.out.println("pressButton == null");
-    }
-
     public void waitForButtonPress() throws InterruptedException {
         while (pressedButton == null) {
-            Thread.sleep(100);
+            Thread.sleep(500);
             Thread.yield();
         }
     }
@@ -182,45 +168,42 @@ public class QuestionForm implements ITabletHandler {
 
     @Override
     public void onPenData(PenData penData) {
-        try {
-            tablet.endCapture();
-        } catch (STUException e) {
-            e.printStackTrace();
-        }
-        if (!"STU-530".equals(modelName)) return;
+        if (penData.getSw() == 0) return;
+        if (doNotProcessing) return;
+        doNotProcessing = true;
         pressedButton(penData);
-        if (pressedButton != null) {
-            System.out.println("onPenData:" + pressedButton.getId());
-        }
     }
 
     private void pressedButton(PenData penData) {
-        System.out.println();
-        if (penData.getSw() == 0)
-            return;
-
         Point2D.Float point = DrawingUtils.tabletToScreen(penData, capability);
-        if (penData.getPressure() >= 100) {
+        try {
             if (cancelButton.getBounds().contains(Math.round(point.getX()), Math.round(point.getY()))) {
                 pressedButton = cancelButton;
                 System.out.println("Нажали cancel - выходим из программы");
-                try {
-                    InputDevice.getInstance().getTablet().setClearScreen();
-                    InputDevice.getInstance().getTablet().disconnect();
-                } catch (STUException e) {
-                    e.printStackTrace();
-                }
+                InputDevice.getInstance().getTablet().setClearScreen();
+                InputDevice.getInstance().getTablet().disconnect();
                 System.exit(1);
             } else if (answerButton.getBounds().contains(Math.round(point.getX()), Math.round(point.getY()))) {
                 pressedButton = answerButton;
-            } else
+//                    doNotProcessing = true;
+            } else {
                 pressedButton = null;
-            try {
-                tablet.setClearScreen();
-            } catch (STUException e) {
-                e.printStackTrace();
+                doNotProcessing = false;
             }
+        } catch (STUException e) {
+            e.printStackTrace();
         }
+        System.out.println(pressedButton != null? pressedButton.getText() : "null"
+                + penData.getX() + ":" + penData.getY() + ":" + penData.getPressure());
+
+    }
+
+    public boolean isDoNotProcessing() {
+        return doNotProcessing;
+    }
+
+    public void setDoNotProcessing(boolean doNotProcessing) {
+        this.doNotProcessing = doNotProcessing;
     }
 
     @Override
@@ -240,16 +223,12 @@ public class QuestionForm implements ITabletHandler {
 
     @Override
     public void onPenDataTimeCountSequence(PenDataTimeCountSequence penDataTimeCountSequence) {
-
-        try {
-            tablet.endCapture();
-        } catch (STUException e) {
-            e.printStackTrace();
-        }
-        if (!"STU-540".equals(modelName)) return;
-        if (penDataTimeCountSequence.getPressure() < 100) return;
+        if (penDataTimeCountSequence.getSw() == 0) return;
+        if (doNotProcessing) return;
+        doNotProcessing = true;
         pressedButton(penDataTimeCountSequence);
     }
+
 
     @Override
     public void onPenDataTimeCountSequenceEncrypted(PenDataTimeCountSequenceEncrypted penDataTimeCountSequenceEncrypted) {

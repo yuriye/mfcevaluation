@@ -64,7 +64,7 @@ public class InputDevice {
             tablet = new Tablet();
             tablet.usbConnect(usbDevice, true);
             tablet.setInkingMode(Off);
-            tablet.setClearScreen();
+//            tablet.setClearScreen();
         } catch (Exception e) {
             e.printStackTrace();
             JOptionPane.showMessageDialog((Component) null, ExceptionUtils.getStackTrace(e));
