@@ -5,9 +5,8 @@ import com.WacomGSS.STU.Protocol.*;
 import com.WacomGSS.STU.STUException;
 import com.WacomGSS.STU.Tablet;
 import ru.ys.mfc.equipment.InputDevice;
-import ru.ys.mfc.equipment.TabletUtils;
-import ru.ys.mfc.util.DrawingUtils;
 import ru.ys.mfc.model.Answer;
+import ru.ys.mfc.util.DrawingUtils;
 
 import java.awt.Rectangle;
 import java.awt.*;
@@ -17,271 +16,196 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class EstimationForm implements ITabletHandler {
-    private List<Answer> answerVariants;
-    private List<Button> navButtons = new ArrayList<>();
     private Tablet tablet;
-    private String modelName;
     private Capability capability;
-    private String pressedButtonId = null;
+    private String modelName;
     private int headerHeight;
-    private int pad = 4;
-    private List<PenData> penData; // Array of data being stored. This can
-    private EncodingMode encodingMode; // How we send the bitmap to the device.
-    private byte[] bitmapData; // This is the flattened data of the bitmap
+    private EncodingMode encodingMode;
+    private byte[] bitmapData;
+    private ru.ys.mfc.view.Button answerButton;
+    private ru.ys.mfc.view.Button cancelButton;
+    private ru.ys.mfc.view.Button pressedButton;
+    private boolean doNotProcessing = false;
+    private int pad = 5;
+    private List<Answer> answers;
+    private List<Button> buttons = new ArrayList<>();
 
-    EstimationForm(String indicatorQueue,
-                   String indicatorId,
-                   String indicatorTitle,
-                   String indicatorDescription,
-                   List<Answer> answerVariants) throws STUException, InterruptedException {
-        InputDevice inputDevice = InputDevice.getInstance();
-        this.answerVariants = answerVariants;
-        this.tablet = inputDevice.getTablet();
-        int e = -1;
+    public EstimationForm(List<Answer> answers) throws InterruptedException, STUException {
+        this.answers = answers;
+        doNotProcessing = false;
+        tablet = InputDevice.getInstance().getTablet();
 
-        for (int i = 0; i < 100; i++) {
-            e = tablet.usbConnect(inputDevice.getUsbDevice(), true);
-            if (e == 0) {
-                break;
-            } else {
-                Thread.sleep(2000);
-            }
-        }
-        if (e != 0) {
-            throw new RuntimeException("Failed to connect to USB tablet, error " + e);
-        }
-
-        this.capability = tablet.getCapability();
-        Information information = tablet.getInformation();
-        modelName = information.getModelName();
-
-        this.headerHeight = this.capability.getScreenHeight() / 4;
-        int offset = this.headerHeight;
-
-        for (int i = 0; i < answerVariants.size(); i++) {
-            Answer answer = answerVariants.get(i);
-            String text = answer.getAltTitle();
-            if ("".equals(text)) text = answer.getTitle();
-            RectangleDimensions buttonDimension = getAnswerButtonDimension();
-            Rectangle rectangle= new Rectangle(pad,
-                    offset + i * (buttonDimension.height + pad),
-                    buttonDimension.widht,
-                    buttonDimension.height);
-            Button navButton = new Button(rectangle, answer.getAltTitle(), ButtonType.ANSWERVARIANT, answer.getId());
-            navButtons.add(navButton);
-        }
-
-        byte encodingFlag = ProtocolHelper.simulateEncodingFlag(
-                this.tablet.getProductId(),
-                this.capability.getEncodingFlag());
-
-        boolean useColor = ProtocolHelper
-                .encodingFlagSupportsColor(encodingFlag);
-
-        useColor = useColor && this.tablet.supportsWrite();
-
-        // Calculate the encodingMode that will be used to update the image
-        if (useColor) {
-            if (this.tablet.supportsWrite())
-                this.encodingMode = EncodingMode.EncodingMode_16bit_Bulk;
-            else
-                this.encodingMode = EncodingMode.EncodingMode_16bit;
-        } else {
-            this.encodingMode = EncodingMode.EncodingMode_1bit;
-        }
-
-        // Size the bitmap to the size of the LCD screen.
-        // This application uses the same bitmap for both the screen and
-        // client (window).
-        // However, at high DPI, this bitmap will be stretch and it
-        // would be better to
-        // create individual bitmaps for screen and client at native
-        // resolutions.
-        // This bitmap that we display on the screen.
-        BufferedImage bitmap = new BufferedImage(this.capability.getScreenWidth(), this.capability.getScreenHeight(), BufferedImage.TYPE_INT_RGB);
-        Graphics2D gfx = bitmap.createGraphics();
-        gfx.setColor(Color.WHITE);
-        gfx.fillRect(0, 0, bitmap.getWidth(), bitmap.getHeight());
-
-        double fontSize = (navButtons.get(0).getBounds().getHeight() / 3); // pixels
-
-        // Draw question
-        gfx.setColor(Color.BLACK);
-//            gfx.setFont(new Font("Courier New", Font.BOLD, (int) fontSize));
-        gfx.setFont(new Font("Times New Roman", Font.BOLD, (int) fontSize));
-        DrawingUtils.drawLongStringBySpliting(gfx, indicatorDescription,
-                (int) 0, 0,
-                (int) this.capability.getScreenWidth(),
-                (int) this.headerHeight,
-                false);
-        // Draw the buttons
-        boolean useColour = useColor;
-        gfx.setFont(new Font("Times New Roman", Font.BOLD, (int) fontSize));
-        navButtons.forEach(btn -> {
-            btn.setGfx(gfx);
-
-            if (useColour) {
-                btn.setBackgroundColor(Color.PINK);
-            }
-            gfx.setColor(Color.BLACK);
-            btn.setTextColor(Color.BLACK);
-            btn.draw();
-        });
-        gfx.dispose();
-
-        bitmapData = ProtocolHelper.flatten(bitmap,
-                bitmap.getWidth(), bitmap.getHeight(),
-                useColor);
-
-        // Add the delagate that receives pen data.
-        tablet.addTabletHandler(this);
-
-        // Enable the pen data on the screen (if not already)
-        tablet.setInkingMode(InkingMode.Off);
-//        if (!this.tablet.isConnected()) {
-//            for (int i = 0; i < 100; i++) {
-//                e = tablet.usbConnect(usbDevice, true);
-//                if (e == 0) {
-//                    break;
-//                } else {
-//                    Thread.sleep(2000);
-//                }
-//            }
-//            if (e != 0) {
-//                throw new RuntimeException("Failed to connect to USB tablet, error " + e);
-//            }
-//        }
-        int connectionError = 0;
-        try {
-            tablet.writeImage(this.encodingMode, this.bitmapData);
-        } catch (Exception ex) {
-            for (int i = 0; i < 20; i++) {
-                if (!tablet.isConnected())
-                    connectionError = tablet.usbConnect(inputDevice.getUsbDevice(), true);
-                if (connectionError == 0) {
+        if (!tablet.isConnected()) {
+            int e = -1;
+            for (int i = 0; i < 100; i++) {
+                e = tablet.usbConnect(InputDevice.getInstance().getUsbDevice(), true);
+                if (e == 0) {
                     break;
                 } else {
                     Thread.sleep(2000);
                 }
             }
-            if (connectionError != 0) {
+            if (e != 0) {
                 throw new RuntimeException("Failed to connect to USB tablet, error " + e);
             }
         }
-        tablet.endImageData();
-    }
+        tablet.setClearScreen();
+        capability = tablet.getCapability();
+        Information information = tablet.getInformation();
+        modelName = information.getModelName();
 
-    public Tablet getTablet() {
-        return tablet;
-    }
+        headerHeight = 2 * capability.getScreenHeight() / 3;
 
-    String getPressedButtonId() {
-        return pressedButtonId;
-    }
+        byte encodingFlag = ProtocolHelper.simulateEncodingFlag(
+                tablet.getProductId(),
+                capability.getEncodingFlag());
 
-    public void waitForButtonPress() throws InterruptedException {
-        while (this.getPressedButtonId() == null) {
-            Thread.sleep(100);
-            Thread.yield();
+        if ((encodingFlag & EncodingFlag.EncodingFlag_24bit) != 0) {
+            this.encodingMode = this.tablet.supportsWrite() ? EncodingMode.EncodingMode_24bit_Bulk : EncodingMode.EncodingMode_24bit;
+        } else if ((encodingFlag & EncodingFlag.EncodingFlag_16bit) != 0) {
+            this.encodingMode = this.tablet.supportsWrite() ? EncodingMode.EncodingMode_16bit_Bulk : EncodingMode.EncodingMode_16bit;
+        } else {
+            this.encodingMode = EncodingMode.EncodingMode_1bit;
+        }
+
+        BufferedImage bitmap = new BufferedImage(this.capability.getScreenWidth(), this.capability.getScreenHeight(), BufferedImage.TYPE_INT_RGB);
+        Graphics2D gfx = bitmap.createGraphics();
+        gfx.setColor(Color.WHITE);
+        gfx.fillRect(0, 0, bitmap.getWidth(), bitmap.getHeight());
+
+        double fontSize = bitmap.getHeight() / 16;
+
+        // Draw question
+        gfx.setColor(Color.BLACK);
+        gfx.setFont(new Font("Times New Roman", Font.BOLD, (int) fontSize));
+
+//        int offset = capability.getScreenHeight() / answers.size();
+        int offset = 0;
+        for (int i = 0; i < answers.size(); i++) {
+            Answer answer = answers.get(i);
+            String id = answer.getId();
+            String text = "".equals(answer.getAltTitle()) ? answer.getTitle() : answer.getAltTitle();
+            RectangleDimensions buttonDimension = getAnswerButtonDimension();
+            java.awt.Rectangle bounds = new Rectangle();
+            bounds.x = pad;
+            bounds.y = offset + i * (buttonDimension.height);
+            bounds.width = buttonDimension.widht;
+            bounds.height = buttonDimension.height;
+            Button button = new Button(gfx, bounds, text, ButtonType.ANSWERVARIANT,id);
+            buttons.add(button);
+        }
+
+        for (int i = 0; i < buttons.size(); i++) {
+            buttons.get(i).draw();
+        }
+        gfx.dispose();
+
+        bitmapData = ProtocolHelper.flatten(bitmap, bitmap.getWidth(), bitmap.getHeight(), encodingMode);
+
+        // Add the delegate that receives pen data.
+        tablet.addTabletHandler(this);
+
+        // Enable the pen data on the screen (if not already)
+        tablet.setInkingMode(InkingMode.Off);
+
+        try {
+            tablet.writeImage(this.encodingMode, this.bitmapData);
+            tablet.endImageData();
+            pressedButton = null;
+        } catch (Exception ex) {
+            throw new RuntimeException("Неудачное подключение к планшету: " + ex.getLocalizedMessage());
         }
     }
 
-    void setAnswerButtonListener(AnswerButtonPressedListener answerButtonListener) {
-    }
-
     private RectangleDimensions getAnswerButtonDimension() {
-        int buttonCount = answerVariants.size();
         int answersAreaHeight = capability.getScreenHeight();
-
         RectangleDimensions dim = new RectangleDimensions();
-        dim.height = (answersAreaHeight - pad) / buttonCount - pad;
+        dim.height = (answersAreaHeight) / answers.size() - (pad / 2);
         dim.widht = capability.getScreenWidth() - pad * 2;
         return dim;
     }
 
-    void dispose() {
-        TabletUtils.dispose(tablet);
+    public ru.ys.mfc.view.Button getPressedButton() {
+        return pressedButton;
     }
 
-    public Capability getCapability() {
-        return capability;
+    public void waitForButtonPress() throws InterruptedException {
+        while (pressedButton == null) {
+            Thread.sleep(500);
+            Thread.yield();
+        }
     }
 
-    @Override
-    public void onPenData(PenData penData) {
-//        if (!readyToProcess) return;
-        if (!"STU-530".equals(modelName)) return;
-        pressedButton(penData);
-    }
-
-    public EncodingMode getEncodingMode() {
-        return encodingMode;
-    }
-
-    public byte[] getBitmapData() {
-        return bitmapData;
+    private static class RectangleDimensions {
+        int height = 0;
+        int widht = 0;
     }
 
     @Override
     public void onGetReportException(STUException e) {
-
+        System.out.println("onGetReportException:");
+        e.printStackTrace();
     }
 
     @Override
     public void onUnhandledReportData(byte[] bytes) {
-//        System.out.println("onUnhandledReportData");
+        System.out.println("onUnhandledReportData:" + bytes);
     }
 
     @Override
-    public void onPenDataOption(PenDataOption penDataOption) {
-//        System.out.println("onPenDataOption");
-    }
-
-    @Override
-    public void onPenDataEncrypted(PenDataEncrypted penDataEncrypted) {
-//        System.out.println("onPenDataEncrypted");
-    }
-
-    @Override
-    public void onPenDataEncryptedOption(PenDataEncryptedOption penDataEncryptedOption) {
-//        System.out.println("onPenDataEncryptedOption");
-    }
-
-    @Override
-    public void onPenDataTimeCountSequence(PenDataTimeCountSequence penDataTimeCountSequence) {
-//        if (!readyToProcess) return;
-        try {
-            tablet.endCapture();
-        } catch (STUException e) {
-            e.printStackTrace();
-        }
-        if (!"STU-540".equals(modelName)) return;
-        if (penDataTimeCountSequence.getPressure() < 100) return;
-        pressedButton(penDataTimeCountSequence);
+    public void onPenData(PenData penData) {
+        if (penData.getSw() == 0) return;
+        if (doNotProcessing) return;
+        doNotProcessing = true;
+        pressedButton(penData);
     }
 
     private void pressedButton(PenData penData) {
-//        boolean readyToProcess = false;
-        Point2D.Float point = DrawingUtils.tabletToScreen(penData, this);
-        for (int i = navButtons.size() - 1; i >= 0; i--) {
-            Button navButton = navButtons.get(i);
-            if (penData.getPressure() > 0) {
-                if (navButton.getBounds().contains(Math.round(point.getX()), Math.round(point.getY()))) {
-                    try {
-                        this.tablet.setClearScreen();
-                    } catch (STUException e) {
-                    }
-                    this.pressedButtonId = navButton.getId();
-                    tablet.disconnect();
-                    break;
-                }
+        Point2D.Float point = DrawingUtils.tabletToScreen(penData, capability);
+        for (int i = 0; i < buttons.size(); i++) {
+            Button button = buttons.get(i);
+            if (button.getBounds().contains(Math.round(point.getX()), Math.round(point.getY()))) {
+                pressedButton = button;
+                break;
             }
         }
     }
 
+    public boolean isDoNotProcessing() {
+        return doNotProcessing;
+    }
+
+    public void setDoNotProcessing(boolean doNotProcessing) {
+        this.doNotProcessing = doNotProcessing;
+    }
+
+    @Override
+    public void onPenDataOption(PenDataOption penDataOption) {
+
+    }
+
+    @Override
+    public void onPenDataEncrypted(PenDataEncrypted penDataEncrypted) {
+
+    }
+
+    @Override
+    public void onPenDataEncryptedOption(PenDataEncryptedOption penDataEncryptedOption) {
+
+    }
+
+    @Override
+    public void onPenDataTimeCountSequence(PenDataTimeCountSequence penDataTimeCountSequence) {
+        if (penDataTimeCountSequence.getSw() == 0) return;
+        if (doNotProcessing) return;
+        doNotProcessing = true;
+        pressedButton(penDataTimeCountSequence);
+    }
+
+
     @Override
     public void onPenDataTimeCountSequenceEncrypted(PenDataTimeCountSequenceEncrypted penDataTimeCountSequenceEncrypted) {
-//        System.out.println("onPenDataTimeCountSequenceEncrypted");
+
     }
 
     @Override
@@ -296,7 +220,7 @@ public class EstimationForm implements ITabletHandler {
 
     @Override
     public void onEventDataSignature(EventDataSignature eventDataSignature) {
-        System.out.println("onEventDataSignature");
+
     }
 
     @Override
@@ -323,10 +247,4 @@ public class EstimationForm implements ITabletHandler {
     public void onEncryptionStatus(EncryptionStatus encryptionStatus) {
 
     }
-
-    private static class RectangleDimensions {
-        int height = 0;
-        int widht = 0;
-    }
-
 }

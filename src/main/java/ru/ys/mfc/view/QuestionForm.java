@@ -24,7 +24,6 @@ public class QuestionForm implements ITabletHandler {
     private ru.ys.mfc.view.Button pressedButton;
     private boolean doNotProcessing = false;
 
-
     public QuestionForm(String indicatorDescription) throws InterruptedException, STUException {
         doNotProcessing = false;
         tablet = InputDevice.getInstance().getTablet();
@@ -32,7 +31,6 @@ public class QuestionForm implements ITabletHandler {
 //            System.out.println("KeyPad supported");
 //        else
 //            System.out.println("No keypad supported");
-
 
 //        OperationMode_KeyPad opMode = new OperationMode_KeyPad((byte)1,(byte)2);
 //        tablet.setOperationMode(OperationMode.initializeKeyPad(opMode));
@@ -52,12 +50,12 @@ public class QuestionForm implements ITabletHandler {
                 throw new RuntimeException("Failed to connect to USB tablet, error " + e);
             }
         }
+        tablet.setClearScreen();
         capability = tablet.getCapability();
         Information information = tablet.getInformation();
         modelName = information.getModelName();
 
-        this.headerHeight = this.capability.getScreenHeight() / 3;
-        int offset = this.headerHeight;
+        headerHeight = 2 * capability.getScreenHeight() / 3;
 
         byte encodingFlag = ProtocolHelper.simulateEncodingFlag(
                 tablet.getProductId(),
@@ -66,14 +64,10 @@ public class QuestionForm implements ITabletHandler {
         boolean useColor = ProtocolHelper
                 .encodingFlagSupportsColor(encodingFlag);
 
-        useColor = useColor && this.tablet.supportsWrite();
-
-        // Calculate the encodingMode that will be used to update the image
-        if (useColor) {
-            if (this.tablet.supportsWrite())
-                this.encodingMode = EncodingMode.EncodingMode_16bit_Bulk;
-            else
-                this.encodingMode = EncodingMode.EncodingMode_16bit;
+        if ((encodingFlag & EncodingFlag.EncodingFlag_24bit) != 0) {
+            this.encodingMode = this.tablet.supportsWrite() ? EncodingMode.EncodingMode_24bit_Bulk : EncodingMode.EncodingMode_24bit;
+        } else if ((encodingFlag & EncodingFlag.EncodingFlag_16bit) != 0) {
+            this.encodingMode = this.tablet.supportsWrite() ? EncodingMode.EncodingMode_16bit_Bulk : EncodingMode.EncodingMode_16bit;
         } else {
             this.encodingMode = EncodingMode.EncodingMode_1bit;
         }
@@ -83,16 +77,18 @@ public class QuestionForm implements ITabletHandler {
         gfx.setColor(Color.WHITE);
         gfx.fillRect(0, 0, bitmap.getWidth(), bitmap.getHeight());
 
-        double fontSize = bitmap.getHeight() / 10;
+        double fontSize = bitmap.getHeight() / 12;
 
         // Draw question
         gfx.setColor(Color.BLACK);
         gfx.setFont(new Font("Times New Roman", Font.BOLD, (int) fontSize));
         DrawingUtils.drawLongStringBySpliting(gfx, indicatorDescription,
-                (int) 0, 0,
-                (int) capability.getScreenWidth(),
+                (int) 40, 0,
+                (int) capability.getScreenWidth() - 80,
                 (int) headerHeight,
                 true);
+
+        gfx.setFont(new Font("Times New Roman", Font.BOLD, (int) fontSize + 2));
 
         Rectangle cancelButtonRectangle = new Rectangle(0,
                 capability.getScreenHeight() - capability.getScreenHeight() / 3 + 2,
@@ -112,10 +108,7 @@ public class QuestionForm implements ITabletHandler {
         answerButton.draw();
 
         gfx.dispose();
-
-        bitmapData = ProtocolHelper.flatten(bitmap,
-                bitmap.getWidth(), bitmap.getHeight(),
-                useColor);
+        bitmapData = ProtocolHelper.flatten(bitmap, bitmap.getWidth(), bitmap.getHeight(), encodingMode);
 
         // Add the delagate that receives pen data.
         tablet.addTabletHandler(this);
@@ -123,25 +116,13 @@ public class QuestionForm implements ITabletHandler {
         // Enable the pen data on the screen (if not already)
         tablet.setInkingMode(InkingMode.Off);
 
-        int connectionError = 0;
         try {
             tablet.writeImage(this.encodingMode, this.bitmapData);
+            tablet.endImageData();
+            pressedButton = null;
         } catch (Exception ex) {
-            for (int i = 0; i < 20; i++) {
-                if (!tablet.isConnected())
-                    connectionError = tablet.usbConnect(InputDevice.getInstance().getUsbDevice(), true);
-                if (connectionError == 0) {
-                    break;
-                } else {
-                    Thread.sleep(2000);
-                }
-            }
-            if (connectionError != 0) {
-                throw new RuntimeException("Неудачное подключение к планшету: " + ex.getLocalizedMessage());
-            }
+            throw new RuntimeException("Неудачное подключение к планшету: " + ex.getLocalizedMessage());
         }
-        tablet.endImageData();
-        pressedButton = null;
     }
 
     public ru.ys.mfc.view.Button getPressedButton() {
@@ -182,7 +163,6 @@ public class QuestionForm implements ITabletHandler {
                 System.out.println("Нажали cancel - выходим из программы");
                 InputDevice.getInstance().getTablet().setClearScreen();
                 InputDevice.getInstance().getTablet().disconnect();
-                System.exit(1);
             } else if (answerButton.getBounds().contains(Math.round(point.getX()), Math.round(point.getY()))) {
                 pressedButton = answerButton;
 //                    doNotProcessing = true;
@@ -193,7 +173,7 @@ public class QuestionForm implements ITabletHandler {
         } catch (STUException e) {
             e.printStackTrace();
         }
-        System.out.println(pressedButton != null? pressedButton.getText() : "null"
+        System.out.println(pressedButton != null ? pressedButton.getText() : "null"
                 + penData.getX() + ":" + penData.getY() + ":" + penData.getPressure());
 
     }

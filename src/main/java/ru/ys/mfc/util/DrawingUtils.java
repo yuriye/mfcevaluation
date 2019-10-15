@@ -22,15 +22,16 @@ public class DrawingUtils {
         gfx.drawString(text, textX, textY);
     }
 
-    static public void drawLongStringBySpliting(Graphics2D gfx, String text, int x,
-                                                int y, int width, int height, Boolean verticalCentered) {
+    static public void drawLongStringBySpliting(Graphics2D gfx, String text,
+                                                int x, int y, int width, int height,
+                                                Boolean verticalCentered) {
         FontMetrics fm = gfx.getFontMetrics(gfx.getFont());
         int textHeight = fm.getHeight();
         int textWidth = fm.stringWidth(text);
 
         java.util.List<String> textParts = new ArrayList<>();
 
-        int textX = 8;
+        int textX = x + 8;
         int textY;
         int lineSpacing = 4;
 
@@ -90,12 +91,12 @@ public class DrawingUtils {
         return retarr;
     }
 
-    public static Point2D.Float tabletToScreen(PenData penData, EstimationForm estimationQuestionForm) {
-        // Screen means LCD screen of the tablet.
-        return new Point2D.Float(
-                (float) penData.getX() * estimationQuestionForm.getCapability().getScreenWidth() / estimationQuestionForm.getCapability().getTabletMaxX(),
-                (float) penData.getY() * estimationQuestionForm.getCapability().getScreenHeight() / estimationQuestionForm.getCapability().getTabletMaxY());
-    }
+//    public static Point2D.Float tabletToScreen(PenData penData, EstimationForm estimationQuestionForm) {
+//        // Screen means LCD screen of the tablet.
+//        return new Point2D.Float(
+//                (float) penData.getX() * estimationQuestionForm.getCapability().getScreenWidth() / estimationQuestionForm.getCapability().getTabletMaxX(),
+//                (float) penData.getY() * estimationQuestionForm.getCapability().getScreenHeight() / estimationQuestionForm.getCapability().getTabletMaxY());
+//    }
 
     public static Point2D.Float tabletToScreen(PenData penData, Capability capability) {
         // Screen means LCD screen of the tablet.
