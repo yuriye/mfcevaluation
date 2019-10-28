@@ -54,7 +54,7 @@ public class Main {
         exit(0);
     }
 
-    private static String askQuestions(List<Question> questions, String orderNumber) throws STUException, InterruptedException {
+    private static String askQuestions(List<Question> questions, String orderNumber) throws STUException , InterruptedException{
         String response = "";
         inputDevice = InputDevice.getInstance();
         QuestionForm questionForm = null;

@@ -24,7 +24,7 @@ public class QuestionForm implements ITabletHandler {
     private ru.ys.mfc.view.Button pressedButton;
     private boolean doNotProcessing = false;
 
-    public QuestionForm(String indicatorDescription) throws InterruptedException, STUException {
+    public QuestionForm(String indicatorDescription) throws STUException {
         doNotProcessing = false;
         tablet = InputDevice.getInstance().getTablet();
 //        if (tablet.isSupported(OperationModeType.KeyPad))
@@ -43,7 +43,13 @@ public class QuestionForm implements ITabletHandler {
                 if (e == 0) {
                     break;
                 } else {
-                    Thread.sleep(2000);
+                    try {
+                        Thread.sleep(2000);
+                    }
+                    catch (InterruptedException inte) {
+                        inte.printStackTrace();
+                    }
+
                 }
             }
             if (e != 0) {
@@ -61,8 +67,7 @@ public class QuestionForm implements ITabletHandler {
                 tablet.getProductId(),
                 capability.getEncodingFlag());
 
-        boolean useColor = ProtocolHelper
-                .encodingFlagSupportsColor(encodingFlag);
+//        boolean useColor = ProtocolHelper.encodingFlagSupportsColor(encodingFlag);
 
         if ((encodingFlag & EncodingFlag.EncodingFlag_24bit) != 0) {
             this.encodingMode = this.tablet.supportsWrite() ? EncodingMode.EncodingMode_24bit_Bulk : EncodingMode.EncodingMode_24bit;
@@ -136,10 +141,14 @@ public class QuestionForm implements ITabletHandler {
         return pressedButton;
     }
 
-    public void waitForButtonPress() throws InterruptedException {
-        while (pressedButton == null) {
-            Thread.sleep(500);
-            Thread.yield();
+    public void waitForButtonPress() {
+        try {
+            while (pressedButton == null) {
+                Thread.sleep(500);
+                Thread.yield();
+            }
+        } catch (InterruptedException inte) {
+            inte.printStackTrace();
         }
     }
 
@@ -151,7 +160,7 @@ public class QuestionForm implements ITabletHandler {
 
     @Override
     public void onUnhandledReportData(byte[] bytes) {
-        System.out.println("onUnhandledReportData:" + bytes);
+
     }
 
     @Override
@@ -180,9 +189,6 @@ public class QuestionForm implements ITabletHandler {
         } catch (STUException e) {
             e.printStackTrace();
         }
-        System.out.println(pressedButton != null ? pressedButton.getText() : "null"
-                + penData.getX() + ":" + penData.getY() + ":" + penData.getPressure());
-
     }
 
     public boolean isDoNotProcessing() {

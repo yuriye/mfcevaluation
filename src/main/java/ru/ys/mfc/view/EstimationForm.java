@@ -18,21 +18,16 @@ import java.util.List;
 public class EstimationForm implements ITabletHandler {
     private Tablet tablet;
     private Capability capability;
-    private String modelName;
-    private int headerHeight;
     private EncodingMode encodingMode;
     private byte[] bitmapData;
-    private ru.ys.mfc.view.Button answerButton;
-    private ru.ys.mfc.view.Button cancelButton;
     private ru.ys.mfc.view.Button pressedButton;
     private boolean doNotProcessing = false;
     private int pad = 5;
     private List<Answer> answers;
     private List<Button> buttons = new ArrayList<>();
 
-    public EstimationForm(List<Answer> answers) throws InterruptedException, STUException {
+    public EstimationForm(List<Answer> answers) throws STUException {
         this.answers = answers;
-        doNotProcessing = false;
         tablet = InputDevice.getInstance().getTablet();
 
         if (!tablet.isConnected()) {
@@ -42,7 +37,11 @@ public class EstimationForm implements ITabletHandler {
                 if (e == 0) {
                     break;
                 } else {
-                    Thread.sleep(2000);
+                    try {
+                        Thread.sleep(2000);
+                    } catch (InterruptedException ex) {
+                        ex.printStackTrace();
+                    }
                 }
             }
             if (e != 0) {
@@ -51,10 +50,6 @@ public class EstimationForm implements ITabletHandler {
         }
         tablet.setClearScreen();
         capability = tablet.getCapability();
-        Information information = tablet.getInformation();
-        modelName = information.getModelName();
-
-        headerHeight = 2 * capability.getScreenHeight() / 3;
 
         byte encodingFlag = ProtocolHelper.simulateEncodingFlag(
                 tablet.getProductId(),
@@ -73,13 +68,12 @@ public class EstimationForm implements ITabletHandler {
         gfx.setColor(Color.WHITE);
         gfx.fillRect(0, 0, bitmap.getWidth(), bitmap.getHeight());
 
-        double fontSize = bitmap.getHeight() / 16;
+        double fontSize = bitmap.getHeight() / (double) 16;
 
         // Draw question
         gfx.setColor(Color.BLACK);
         gfx.setFont(new Font("Times New Roman", Font.BOLD, (int) fontSize));
 
-//        int offset = capability.getScreenHeight() / answers.size();
         int offset = 0;
         for (int i = 0; i < answers.size(); i++) {
             Answer answer = answers.get(i);
@@ -107,14 +101,13 @@ public class EstimationForm implements ITabletHandler {
                     40, 40);
         }
         gfx.dispose();
-
         bitmapData = ProtocolHelper.flatten(bitmap, bitmap.getWidth(), bitmap.getHeight(), encodingMode);
 
         // Add the delegate that receives pen data.
         tablet.addTabletHandler(this);
 
         // Enable the pen data on the screen (if not already)
-        tablet.setInkingMode(InkingMode.Off);
+//        tablet.setInkingMode(InkingMode.Off);
 
         try {
             tablet.writeImage(this.encodingMode, this.bitmapData);
@@ -123,6 +116,8 @@ public class EstimationForm implements ITabletHandler {
         } catch (Exception ex) {
             throw new RuntimeException("Неудачное подключение к планшету: " + ex.getLocalizedMessage());
         }
+        doNotProcessing = false;
+        tablet.setInkingMode(InkingMode.Off);
     }
 
     private RectangleDimensions getAnswerButtonDimension() {
@@ -137,10 +132,14 @@ public class EstimationForm implements ITabletHandler {
         return pressedButton;
     }
 
-    public void waitForButtonPress() throws InterruptedException {
-        while (pressedButton == null) {
-            Thread.sleep(500);
-            Thread.yield();
+    public void waitForButtonPress() {
+        try {
+            while (pressedButton == null) {
+                Thread.sleep(500);
+                Thread.yield();
+            }
+        } catch (InterruptedException inte) {
+            inte.printStackTrace();
         }
     }
 
@@ -152,7 +151,7 @@ public class EstimationForm implements ITabletHandler {
 
     @Override
     public void onUnhandledReportData(byte[] bytes) {
-        System.out.println("onUnhandledReportData:" + bytes);
+//        System.out.println("onUnhandledReportData:" + bytes);
     }
 
     @Override
@@ -170,6 +169,10 @@ public class EstimationForm implements ITabletHandler {
             if (button.getBounds().contains(Math.round(point.getX()), Math.round(point.getY()))) {
                 pressedButton = button;
                 break;
+            }
+            else {
+                pressedButton = null;
+                doNotProcessing = false;
             }
         }
     }
@@ -200,7 +203,10 @@ public class EstimationForm implements ITabletHandler {
     @Override
     public void onPenDataTimeCountSequence(PenDataTimeCountSequence penDataTimeCountSequence) {
         if (penDataTimeCountSequence.getSw() == 0) return;
-        if (doNotProcessing) return;
+        if (doNotProcessing) {
+//            System.out.println("doNotProcessing");
+            return;
+        }
         doNotProcessing = true;
         pressedButton(penDataTimeCountSequence);
     }
