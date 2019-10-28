@@ -74,13 +74,16 @@ public class QuestionForm implements ITabletHandler {
 
         BufferedImage bitmap = new BufferedImage(this.capability.getScreenWidth(), this.capability.getScreenHeight(), BufferedImage.TYPE_INT_RGB);
         Graphics2D gfx = bitmap.createGraphics();
-        gfx.setColor(Color.WHITE);
+//        gfx.setBackground(new Color(98, 59, 42));
+        gfx.setBackground(new Color(224, 78, 57));
+        gfx.setColor(new Color(224, 78, 57));
         gfx.fillRect(0, 0, bitmap.getWidth(), bitmap.getHeight());
 
-        double fontSize = bitmap.getHeight() / 12;
+        long fontSize = Math.round(bitmap.getHeight() / 12.0);
+
 
         // Draw question
-        gfx.setColor(Color.BLACK);
+        gfx.setColor(Color.WHITE);
         gfx.setFont(new Font("Times New Roman", Font.BOLD, (int) fontSize));
         DrawingUtils.drawLongStringBySpliting(gfx, indicatorDescription,
                 (int) 40, 0,
@@ -90,19 +93,23 @@ public class QuestionForm implements ITabletHandler {
 
         gfx.setFont(new Font("Times New Roman", Font.BOLD, (int) fontSize + 2));
 
-        Rectangle cancelButtonRectangle = new Rectangle(0,
-                capability.getScreenHeight() - capability.getScreenHeight() / 3 + 2,
-                capability.getScreenWidth() / 2 - 2,
-                capability.getScreenHeight() / 3 - 2);
+        Rectangle cancelButtonRectangle = new Rectangle(20,
+                capability.getScreenHeight() - capability.getScreenHeight() / 3 + 2 + 20,
+                capability.getScreenWidth() / 2 - 2 - 40,
+                capability.getScreenHeight() / 3 - 2 - 40);
 
-        cancelButton = new Button(gfx, cancelButtonRectangle, "Прервать оценку", ButtonType.CANCELESTIMATION, "cancel");
+        cancelButton = new Button(gfx, cancelButtonRectangle, "Прервать оценку", ButtonType.CANCELESTIMATION, "cancel",
+                new Color(250, 220, 214),
+                Color.WHITE);
 
-        Rectangle answerButtonRectangle = new Rectangle(capability.getScreenWidth() / 2 + 2,
-                capability.getScreenHeight() - capability.getScreenHeight() / 3 + 2,
-                capability.getScreenWidth() / 2 - 2,
-                capability.getScreenHeight() / 3 - 2);
+        Rectangle answerButtonRectangle = new Rectangle(capability.getScreenWidth() / 2 + 2 + 20,
+                capability.getScreenHeight() - capability.getScreenHeight() / 3 + 2 + 20,
+                capability.getScreenWidth() / 2 - 2 - 40,
+                capability.getScreenHeight() / 3 - 2 - 40);
 
-        answerButton = new Button(gfx, answerButtonRectangle, "Оценить", ButtonType.ANSWER, "answer");
+        answerButton = new Button(gfx, answerButtonRectangle, "Оценить", ButtonType.ANSWER, "answer",
+                new Color(224, 78, 57),
+                Color.WHITE);
 
         cancelButton.draw();
         answerButton.draw();

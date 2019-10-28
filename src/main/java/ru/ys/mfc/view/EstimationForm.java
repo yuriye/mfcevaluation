@@ -88,15 +88,23 @@ public class EstimationForm implements ITabletHandler {
             RectangleDimensions buttonDimension = getAnswerButtonDimension();
             java.awt.Rectangle bounds = new Rectangle();
             bounds.x = pad;
-            bounds.y = offset + i * (buttonDimension.height);
+            bounds.y = offset + i * (buttonDimension.height) + 4;
             bounds.width = buttonDimension.widht;
             bounds.height = buttonDimension.height;
-            Button button = new Button(gfx, bounds, text, ButtonType.ANSWERVARIANT,id);
+            Button button = new Button(gfx, bounds, text, ButtonType.ANSWERVARIANT, id,
+                    Color.WHITE,
+                    new Color(224, 78, 57));
             buttons.add(button);
         }
 
         for (int i = 0; i < buttons.size(); i++) {
             buttons.get(i).draw();
+            gfx.setColor(Color.WHITE);
+            gfx.drawRoundRect(buttons.get(i).getBounds().x,
+                    buttons.get(i).getBounds().y,
+                    buttons.get(i).getBounds().width,
+                    buttons.get(i).getBounds().height,
+                    40, 40);
         }
         gfx.dispose();
 
@@ -134,11 +142,6 @@ public class EstimationForm implements ITabletHandler {
             Thread.sleep(500);
             Thread.yield();
         }
-    }
-
-    private static class RectangleDimensions {
-        int height = 0;
-        int widht = 0;
     }
 
     @Override
@@ -202,7 +205,6 @@ public class EstimationForm implements ITabletHandler {
         pressedButton(penDataTimeCountSequence);
     }
 
-
     @Override
     public void onPenDataTimeCountSequenceEncrypted(PenDataTimeCountSequenceEncrypted penDataTimeCountSequenceEncrypted) {
 
@@ -246,5 +248,10 @@ public class EstimationForm implements ITabletHandler {
     @Override
     public void onEncryptionStatus(EncryptionStatus encryptionStatus) {
 
+    }
+
+    private static class RectangleDimensions {
+        int height = 0;
+        int widht = 0;
     }
 }

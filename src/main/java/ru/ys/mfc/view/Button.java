@@ -28,6 +28,17 @@ public class Button {
         this.gfx = gfx;
     }
 
+    public Button(Graphics2D gfx, Rectangle bounds, String text, ButtonType buttonType, String id, Color textColor, Color backgroundColor) {
+        this.bounds = bounds;
+        this.text = text;
+        this.buttonType = buttonType;
+        this.id = id;
+        this.gfx = gfx;
+        this.textColor = textColor;
+        this.backgroundColor = backgroundColor;
+    }
+
+
     public Rectangle getBounds() {
         return bounds;
     }
@@ -90,15 +101,17 @@ public class Button {
         Color color = gfx.getColor();
         Color bck = gfx.getBackground();
         gfx.setColor(backgroundColor);
-        gfx.fillRect((int) bounds.getX(),
+        gfx.fillRoundRect((int) bounds.getX(),
                 (int) bounds.getY(),
                 (int) bounds.getWidth(),
-                (int) bounds.getHeight());
+                (int) bounds.getHeight(),
+                40, 40);
         gfx.setColor(textColor);
-        gfx.drawRect((int) bounds.getX(),
-                (int) bounds.getY(),
-                (int) bounds.getWidth(),
-                (int) bounds.getHeight());
+//        gfx.drawRoundRect((int) bounds.getX(),
+//                (int) bounds.getY(),
+//                (int) bounds.getWidth(),
+//                (int) bounds.getHeight(),
+//                40, 40);
         DrawingUtils.drawLongStringBySpliting(gfx, text,
                 (int) bounds.getX(),
                 (int) bounds.getY(),

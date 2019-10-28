@@ -4,13 +4,15 @@ public class Settings {
 
     private static Settings instance;
 
-    private String urlString = "http://10.2.139.25/mkgu/server/";
+
+    private String mkguUrlString = "http://10.2.139.25/mkgu/server/";
     private String getFreeTime = "getfreetime";
     private String getManagedOptions = "getmanagedoptions";
     private String getOrderStatus = "cpgu/action/getOrderStatusTitle";
     private String getMkguFormVersion = "cpgu/action/getMkguFormVersion";
     private String getMkguQuestionnaires = "cpgu/action/getMkguQuestionnaires";
     private String postMkguQuestionnaires = "cpgu/action/sendMkguFormAnswers";
+    private String sendMkguFormAnswers = "cpgu/action/sendMkguFormAnswers";
     private String okato = "50401000000";
 
     private Settings() {
@@ -23,12 +25,16 @@ public class Settings {
         return instance;
     }
 
+    public String getSendMkguFormAnswers() {
+        return sendMkguFormAnswers;
+    }
+
     public String getOkato() {
         return okato;
     }
 
-    public String getUrlString() {
-        return urlString;
+    public String getMkguUrlString() {
+        return mkguUrlString;
     }
 
     public String getGetFreeTime() {
