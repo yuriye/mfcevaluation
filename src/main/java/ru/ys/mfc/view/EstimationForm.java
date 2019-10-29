@@ -169,8 +169,7 @@ public class EstimationForm implements ITabletHandler {
             if (button.getBounds().contains(Math.round(point.getX()), Math.round(point.getY()))) {
                 pressedButton = button;
                 break;
-            }
-            else {
+            } else {
                 pressedButton = null;
                 doNotProcessing = false;
             }

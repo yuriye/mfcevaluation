@@ -120,7 +120,7 @@ public class Button {
                 true);
         gfx.setBackground(bck);
         gfx.setColor(color);
-    };
+    }
 
     public boolean contains(int x, int y) {
         return bounds.contains(x, y);

@@ -45,8 +45,7 @@ public class QuestionForm implements ITabletHandler {
                 } else {
                     try {
                         Thread.sleep(2000);
-                    }
-                    catch (InterruptedException inte) {
+                    } catch (InterruptedException inte) {
                         inte.printStackTrace();
                     }
 

@@ -41,6 +41,9 @@ public class HttpAdapter {
         try {
             InputStreamReader isr;
             String urlString = settings.getMkguUrlString() + settings.getGetMkguFormVersion() + "?orderNumber=" + URLEncoder.encode(orderNumber, "UTF-8");
+
+            System.out.println(urlString);
+
             URL url = new URL(urlString);
             isr = new InputStreamReader(url.openStream(), "UTF-8");
 

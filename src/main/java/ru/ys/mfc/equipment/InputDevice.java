@@ -1,15 +1,16 @@
 package ru.ys.mfc.equipment;
 
+import com.WacomGSS.STU.Protocol.EncodingFlag;
+import com.WacomGSS.STU.Protocol.EncodingMode;
+import com.WacomGSS.STU.Protocol.ProtocolHelper;
 import com.WacomGSS.STU.Tablet;
 import com.WacomGSS.STU.UsbDevice;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import javax.swing.*;
-import java.awt.*;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.CopyOption;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -21,6 +22,7 @@ public class InputDevice {
     private static InputDevice inputDeviceInstance;
     private UsbDevice usbDevice;
     private Tablet tablet;
+    private EncodingMode encodingMode;
 
     private InputDevice() {
     }
@@ -50,7 +52,7 @@ public class InputDevice {
                 if (input == null) {
                     throw new FileNotFoundException("Не найден ресурс wgssSTU.dll");
                 }
-                Files.copy(input, path, new CopyOption[0]);
+                Files.copy(input, path);
                 System.loadLibrary("wgssSTU");
             } catch (IOException e) {
                 System.out.println("2 попытка загрузить wgssSTU не удалась");
@@ -64,10 +66,20 @@ public class InputDevice {
             tablet = new Tablet();
             tablet.usbConnect(usbDevice, true);
             tablet.setInkingMode(Off);
+            byte encodingFlag = ProtocolHelper.simulateEncodingFlag(
+                    tablet.getProductId(),
+                    tablet.getCapability().getEncodingFlag());
+            if ((encodingFlag & EncodingFlag.EncodingFlag_24bit) != 0) {
+                encodingMode = this.tablet.supportsWrite() ? EncodingMode.EncodingMode_24bit_Bulk : EncodingMode.EncodingMode_24bit;
+            } else if ((encodingFlag & EncodingFlag.EncodingFlag_16bit) != 0) {
+                encodingMode = this.tablet.supportsWrite() ? EncodingMode.EncodingMode_16bit_Bulk : EncodingMode.EncodingMode_16bit;
+            } else {
+                encodingMode = EncodingMode.EncodingMode_1bit;
+            }
 //            tablet.setClearScreen();
         } catch (Exception e) {
             e.printStackTrace();
-            JOptionPane.showMessageDialog((Component) null, ExceptionUtils.getStackTrace(e));
+            JOptionPane.showMessageDialog(null, ExceptionUtils.getStackTrace(e));
             System.exit(1);
         }
     }
@@ -79,7 +91,7 @@ public class InputDevice {
                 tablet.disconnect();
             }
         } catch (Exception e) {
-            JOptionPane.showMessageDialog((Component) null, ExceptionUtils.getStackTrace(e));
+            JOptionPane.showMessageDialog(null, ExceptionUtils.getStackTrace(e));
             System.exit(1);
         }
     }
@@ -90,5 +102,9 @@ public class InputDevice {
 
     public UsbDevice getUsbDevice() {
         return usbDevice;
+    }
+
+    public EncodingMode getIncodingMode() {
+        return encodingMode;
     }
 }

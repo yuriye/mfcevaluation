@@ -2,7 +2,6 @@ package ru.ys.mfc.util;
 
 import com.WacomGSS.STU.Protocol.Capability;
 import com.WacomGSS.STU.Protocol.PenData;
-import ru.ys.mfc.view.EstimationForm;
 
 import java.awt.*;
 import java.awt.geom.Point2D;
@@ -49,8 +48,7 @@ public class DrawingUtils {
             if (textParts.size() > 0) {
                 if (verticalCentered) {
                     textY = y + (height - (textHeight + lineSpacing) * textParts.size() - lineSpacing) / 2 + fm.getAscent();
-                }
-                else {
+                } else {
                     textY = 13;
                 }
                 for (int i = 0; i < textParts.size(); i++) {

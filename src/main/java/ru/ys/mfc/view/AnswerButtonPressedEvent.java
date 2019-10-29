@@ -11,20 +11,20 @@ public class AnswerButtonPressedEvent extends EventObject {
         this.message = message;
     }
 
-    public AnswerButtonPressedEvent(Object source){
+    public AnswerButtonPressedEvent(Object source) {
         this(source, "");
     }
 
-    public AnswerButtonPressedEvent(String s){
+    public AnswerButtonPressedEvent(String s) {
         this(null, s);
     }
 
-    public String getMessage(){
+    public String getMessage() {
         return message;
     }
 
     @Override
-    public String toString(){
+    public String toString() {
         return getClass().getName() + "[source = " + getSource() + ", message = " + message + "]";
     }
 }

@@ -5,5 +5,5 @@ enum ButtonType {
     ANSWERVARIANT,
     CANCELESTIMATION,
     NEXTQUESTION,
-    ANSWER;
+    ANSWER
 }
