@@ -5,12 +5,15 @@ import com.WacomGSS.STU.Protocol.EncodingMode;
 import com.WacomGSS.STU.Protocol.ProtocolHelper;
 import com.WacomGSS.STU.STUException;
 import com.WacomGSS.STU.Tablet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ru.ys.mfc.equipment.InputDevice;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
 
 public class ByeImage {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ByeImage.class);
 
     BufferedImage bitmap;
     private Capability capability;
@@ -20,7 +23,7 @@ public class ByeImage {
         try {
             this.capability = InputDevice.getInstance().getTablet().getCapability();
         } catch (STUException e) {
-            e.printStackTrace();
+            LOGGER.error("public ByeImage(String message)", e);
         }
         this.message = message;
         createImage();
@@ -59,6 +62,7 @@ public class ByeImage {
             tablet.writeImage(encodingMode, bitmapData);
             tablet.endImageData();
         } catch (Exception ex) {
+            LOGGER.error("Неудачное подключение к планшету", ex);
             throw new RuntimeException("Неудачное подключение к планшету: " + ex.getLocalizedMessage());
         }
     }

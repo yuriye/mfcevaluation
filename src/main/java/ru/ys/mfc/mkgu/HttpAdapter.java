@@ -9,6 +9,8 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicNameValuePair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ru.ys.mfc.Settings;
 
 import java.io.IOException;
@@ -23,6 +25,8 @@ import java.util.List;
 import java.util.Map;
 
 public class HttpAdapter {
+    private static final Logger LOGGER = LoggerFactory.getLogger(HttpAdapter.class);
+
     private static HttpAdapter instance;
     private static Settings settings = Settings.getInstance();
 
@@ -54,7 +58,8 @@ public class HttpAdapter {
             } finally {
                 isr.close();
             }
-        } catch (IOException var11) {
+        } catch (IOException ioe) {
+            LOGGER.info("getMkguFormVersion(String orderNumber)", ioe);
         }
         return (Map) result;
     }
@@ -77,7 +82,7 @@ public class HttpAdapter {
             }
 
         } catch (IOException e) {
-            e.printStackTrace();
+            LOGGER.error("getMkguQuestionnaires()", e);
         }
 
         return result;
@@ -95,11 +100,11 @@ public class HttpAdapter {
             HttpResponse response = client.execute(post);
             return response.getStatusLine().getStatusCode();
         } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
+            LOGGER.error("postAnswers(String version, String orderNumber, String query)", e);
         } catch (ClientProtocolException e) {
-            e.printStackTrace();
+            LOGGER.error("postAnswers(String version, String orderNumber, String query)", e);
         } catch (IOException e) {
-            e.printStackTrace();
+            LOGGER.error("postAnswers(String version, String orderNumber, String query)", e);
         }
         return 0;
     }

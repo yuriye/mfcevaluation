@@ -6,6 +6,8 @@ import com.WacomGSS.STU.Protocol.ProtocolHelper;
 import com.WacomGSS.STU.Tablet;
 import com.WacomGSS.STU.UsbDevice;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.io.FileNotFoundException;
@@ -18,6 +20,7 @@ import java.nio.file.Path;
 import static com.WacomGSS.STU.Protocol.InkingMode.Off;
 
 public class InputDevice {
+    private static final Logger LOGGER = LoggerFactory.getLogger(InputDevice.class);
 
     private static InputDevice inputDeviceInstance;
     private UsbDevice usbDevice;
@@ -34,7 +37,7 @@ public class InputDevice {
                 inputDeviceInstance.init();
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            LOGGER.error("public static synchronized InputDevice getInstance()", e);
         }
         return inputDeviceInstance;
     }
@@ -43,20 +46,19 @@ public class InputDevice {
         try {
             System.loadLibrary("wgssSTU");
         } catch (UnsatisfiedLinkError ue) {
-            System.out.println("Попытка загрузить wgssSTU не удалась");
-            ue.printStackTrace();
+            LOGGER.error("Попытка загрузить wgssSTU не удалась", ue);
             String name = "wgssSTU.dll";
             Path path = FileSystems.getDefault().getPath(".", name);
 
             try (InputStream input = ru.ys.mfc.Main.class.getResourceAsStream("/" + name)) {
                 if (input == null) {
+                    LOGGER.error("Не найден ресурс wgssSTU.dll");
                     throw new FileNotFoundException("Не найден ресурс wgssSTU.dll");
                 }
                 Files.copy(input, path);
                 System.loadLibrary("wgssSTU");
             } catch (IOException e) {
-                System.out.println("2 попытка загрузить wgssSTU не удалась");
-                e.printStackTrace();
+                LOGGER.error("2 попытка загрузить wgssSTU не удалась", e);
                 throw e;
             }
         }
@@ -78,7 +80,7 @@ public class InputDevice {
             }
 //            tablet.setClearScreen();
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.error("public void init()", e);
             JOptionPane.showMessageDialog(null, ExceptionUtils.getStackTrace(e));
             System.exit(1);
         }
@@ -91,6 +93,7 @@ public class InputDevice {
                 tablet.disconnect();
             }
         } catch (Exception e) {
+            LOGGER.error("disconnect()", e);
             JOptionPane.showMessageDialog(null, ExceptionUtils.getStackTrace(e));
             System.exit(1);
         }

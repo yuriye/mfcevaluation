@@ -1,6 +1,8 @@
 package ru.ys.mfc;
 
 import com.WacomGSS.STU.STUException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ru.ys.mfc.equipment.InputDevice;
 import ru.ys.mfc.mkgu.HttpAdapter;
 import ru.ys.mfc.model.Question;
@@ -19,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 
 public class Main {
+    private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
 
     private static InputDevice inputDevice;
     private static QuestionsFactory questionsFactory;
@@ -29,30 +32,34 @@ public class Main {
 
     public static void main(String[] args) throws InterruptedException {
         String orderCode = "0000000";
-
+        LOGGER.info("Код заявления: {}", (args.length > 0 ? args[0] : "null"));
         if (args.length > 0) {
             if ("m".equals(args[0])) {
                 isMock = true;
                 questionsFactory = QuestionsFactoryFactory
                         .getQuestionsFactory("ru.ys.mfc.model.MockQuestions");
-                System.out.println("Mock variant!");
+                LOGGER.info("Mock variant!");
             } else {
                 orderCode = args[0];
                 questionsFactory = QuestionsFactoryFactory
                         .getQuestionsFactory("ru.ys.mfc.model.MKGUQuestions");
-                System.out.println("orderNumber: " + orderCode);
+                LOGGER.debug("orderNumber: {}", orderCode);
             }
-        } else
+        } else {
+            LOGGER.error("Не указан код заявления!");
             throw new RuntimeException("Не указан код заявления!");
+        }
 
         questionsFactory.setOrderCode(orderCode);
         Map<String, String> formVersion;
         formVersion = questionsFactory.getFormVersion();
 
         if ("ALREADY_FILLED".equals(formVersion.get("status"))) {
+            LOGGER.info("Оценка заявления с кодом " + orderCode + " уже была произведена.");
             JOptionPane.showMessageDialog((Component) null, "Оценка заявления с кодом " + orderCode + " уже была произведена.");
             exit(0);
         } else if (!"OK".equals(formVersion.get("status"))) {
+            LOGGER.info("Заявление с кодом " + orderCode + " не найдено");
             JOptionPane.showMessageDialog((Component) null, "Заявление с кодом " + orderCode + " не найдено");
             exit(0);
         }
@@ -61,24 +68,27 @@ public class Main {
         progressFrame = new ProgressFrame("Оценка качеcтва оказания услуг");
         String response = "";
         try {
+            progressFrame.setInformString("Осуществляется оценка...");
             response = askQuestions(questions, orderCode);
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.error("Ошибка на response = askQuestions(questions, orderCode)", e);
             exit(1);
         }
 
-        if (!isMock)
+        if (!isMock) {
+            progressFrame.setInformString("Осуществляется передача результата оценки...");
             postAnswers(orderCode, formVersion.get("version"), response);
+        }
 
-        System.out.println(response);
-
+        LOGGER.info("response: {}", response);
+        progressFrame.setInformString("Передача данных завершена, оценка принята.");
         ByeImage byeImage = new ByeImage("Спасибо за Вашу оценку!");
         byeImage.show();
         Thread.sleep(10000);
         exit(0);
     }
 
-    private static String askQuestions(List<Question> questions, String orderCode) throws STUException , InterruptedException{
+    private static String askQuestions(List<Question> questions, String orderCode) throws STUException {
         String response = "";
         inputDevice = InputDevice.getInstance();
         QuestionForm questionForm = null;
@@ -93,7 +103,7 @@ public class Main {
                 exit(1);
             }
 
-            System.out.println(question.getTitle());
+            LOGGER.debug("question.getTitle(): {}", question.getTitle());
             estimationForm = new EstimationForm(question.getCandidates());
             estimationForm.waitForButtonPress();
             String[] answer = new String[2];
@@ -101,7 +111,7 @@ public class Main {
             answer[1] = estimationForm.getPressedButton().getId();
             answers.add(answer);
             progressFrame.getProgressBar().setValue(++progress);
-            System.out.println(estimationForm.getPressedButton().getText());
+            LOGGER.debug("Pressed button: {}", estimationForm.getPressedButton().getText());
         }
         InputDevice.getInstance().getTablet().setClearScreen();
         response = Utils.getAnswersQueryString(questionsFactory.getFormVersion().get("version"), orderCode, Utils.getRatesString(answers));
@@ -116,12 +126,13 @@ public class Main {
             }
         } catch (Exception e) {
         }
+        LOGGER.info("System.exit({})", code);
         System.exit(code);
     }
 
     private static int postAnswers(String orderCode, String version, String response) {
         int statusCode = HttpAdapter.getInstance().postAnswers(orderCode, version, response);
-        System.out.println("statusCode: " + statusCode);
+        LOGGER.info("statusCode: {}", statusCode);
         return statusCode;
     }
 }

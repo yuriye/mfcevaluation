@@ -4,6 +4,8 @@ import com.WacomGSS.STU.ITabletHandler;
 import com.WacomGSS.STU.Protocol.*;
 import com.WacomGSS.STU.STUException;
 import com.WacomGSS.STU.Tablet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ru.ys.mfc.equipment.InputDevice;
 import ru.ys.mfc.model.Answer;
 import ru.ys.mfc.util.DrawingUtils;
@@ -16,6 +18,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class EstimationForm implements ITabletHandler {
+    private static final Logger LOGGER = LoggerFactory.getLogger(EstimationForm.class);
+
     private Tablet tablet;
     private Capability capability;
     private EncodingMode encodingMode;
@@ -40,11 +44,12 @@ public class EstimationForm implements ITabletHandler {
                     try {
                         Thread.sleep(2000);
                     } catch (InterruptedException ex) {
-                        ex.printStackTrace();
+                        LOGGER.error("Ошибка при подключении к планшету",ex);
                     }
                 }
             }
             if (e != 0) {
+                LOGGER.error("Failed to connect to USB tablet, error ", e);
                 throw new RuntimeException("Failed to connect to USB tablet, error " + e);
             }
         }
@@ -106,14 +111,12 @@ public class EstimationForm implements ITabletHandler {
         // Add the delegate that receives pen data.
         tablet.addTabletHandler(this);
 
-        // Enable the pen data on the screen (if not already)
-//        tablet.setInkingMode(InkingMode.Off);
-
         try {
             tablet.writeImage(this.encodingMode, this.bitmapData);
             tablet.endImageData();
             pressedButton = null;
         } catch (Exception ex) {
+            LOGGER.error("Неудачное подключение к планшету: ", ex.getLocalizedMessage());
             throw new RuntimeException("Неудачное подключение к планшету: " + ex.getLocalizedMessage());
         }
         doNotProcessing = false;
@@ -139,14 +142,13 @@ public class EstimationForm implements ITabletHandler {
                 Thread.yield();
             }
         } catch (InterruptedException inte) {
-            inte.printStackTrace();
+            LOGGER.error("public void waitForButtonPress()", inte);
         }
     }
 
     @Override
     public void onGetReportException(STUException e) {
-        System.out.println("onGetReportException:");
-        e.printStackTrace();
+        LOGGER.error("public void onGetReportException(STUException e)", e);
     }
 
     @Override
@@ -168,6 +170,7 @@ public class EstimationForm implements ITabletHandler {
             Button button = buttons.get(i);
             if (button.getBounds().contains(Math.round(point.getX()), Math.round(point.getY()))) {
                 pressedButton = button;
+                doNotProcessing = true;
                 break;
             } else {
                 pressedButton = null;
@@ -202,10 +205,7 @@ public class EstimationForm implements ITabletHandler {
     @Override
     public void onPenDataTimeCountSequence(PenDataTimeCountSequence penDataTimeCountSequence) {
         if (penDataTimeCountSequence.getSw() == 0) return;
-        if (doNotProcessing) {
-//            System.out.println("doNotProcessing");
-            return;
-        }
+        if (doNotProcessing) return;
         doNotProcessing = true;
         pressedButton(penDataTimeCountSequence);
     }

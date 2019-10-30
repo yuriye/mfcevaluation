@@ -4,6 +4,8 @@ import com.WacomGSS.STU.ITabletHandler;
 import com.WacomGSS.STU.Protocol.*;
 import com.WacomGSS.STU.STUException;
 import com.WacomGSS.STU.Tablet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ru.ys.mfc.equipment.InputDevice;
 import ru.ys.mfc.util.DrawingUtils;
 
@@ -13,6 +15,8 @@ import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 
 public class QuestionForm implements ITabletHandler {
+    private static final Logger LOGGER = LoggerFactory.getLogger(QuestionForm.class);
+
     private Tablet tablet;
     private Capability capability;
     private String modelName;
@@ -46,12 +50,13 @@ public class QuestionForm implements ITabletHandler {
                     try {
                         Thread.sleep(2000);
                     } catch (InterruptedException inte) {
-                        inte.printStackTrace();
+                        LOGGER.error("Проблема с подключением к планшету", inte);
                     }
 
                 }
             }
             if (e != 0) {
+                LOGGER.error("Failed to connect to USB tablet, error {}", e);
                 throw new RuntimeException("Failed to connect to USB tablet, error " + e);
             }
         }
@@ -132,6 +137,7 @@ public class QuestionForm implements ITabletHandler {
             tablet.endImageData();
             pressedButton = null;
         } catch (Exception ex) {
+            LOGGER.error("Неудачное подключение к планшету: ", ex.getLocalizedMessage());
             throw new RuntimeException("Неудачное подключение к планшету: " + ex.getLocalizedMessage());
         }
     }
@@ -147,14 +153,13 @@ public class QuestionForm implements ITabletHandler {
                 Thread.yield();
             }
         } catch (InterruptedException inte) {
-            inte.printStackTrace();
+            LOGGER.error("InterruptedException во время ожидания нажатия кнопки", inte);
         }
     }
 
     @Override
     public void onGetReportException(STUException e) {
-        System.out.println("onGetReportException:");
-        e.printStackTrace();
+        LOGGER.error("onGetReportException:", e);
     }
 
     @Override
@@ -175,18 +180,19 @@ public class QuestionForm implements ITabletHandler {
         try {
             if (cancelButton.getBounds().contains(Math.round(point.getX()), Math.round(point.getY()))) {
                 pressedButton = cancelButton;
+                doNotProcessing = true;
                 System.out.println("Нажали cancel - выходим из программы");
                 InputDevice.getInstance().getTablet().setClearScreen();
                 InputDevice.getInstance().getTablet().disconnect();
             } else if (answerButton.getBounds().contains(Math.round(point.getX()), Math.round(point.getY()))) {
                 pressedButton = answerButton;
-//                    doNotProcessing = true;
+                doNotProcessing = true;
             } else {
                 pressedButton = null;
                 doNotProcessing = false;
             }
         } catch (STUException e) {
-            e.printStackTrace();
+            LOGGER.error("private void pressedButton(PenData penData)",e);
         }
     }
 
