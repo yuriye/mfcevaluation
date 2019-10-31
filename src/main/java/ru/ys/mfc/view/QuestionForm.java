@@ -173,7 +173,7 @@ public class QuestionForm implements ITabletHandler {
     }
 
     private void processPressed(PenData penData) {
-        LOGGER.debug("processPressed penData.getSw(): {} doNotProcessing: {}", penData.getSw(), doNotProcessing);
+//        LOGGER.debug("processPressed penData.getSw(): {} doNotProcessing: {}", penData.getSw(), doNotProcessing);
         if (penData.getSw() == 0) return;
         if (doNotProcessing) return;
         doNotProcessing = true;
@@ -214,9 +214,6 @@ public class QuestionForm implements ITabletHandler {
 
     @Override
     public void onPenDataTimeCountSequence(PenDataTimeCountSequence penDataTimeCountSequence) {
-//        if (penDataTimeCountSequence.getSw() == 0) return;
-//        if (doNotProcessing) return;
-//        doNotProcessing = true;
         processPressed(penDataTimeCountSequence);
     }
 

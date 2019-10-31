@@ -34,6 +34,10 @@ public class Main {
             String orderCode = "0000000";
             LOGGER.info("Код заявления: {}", (args.length > 0 ? args[0] : "null"));
             if (args.length > 0) {
+                LOGGER.info("args[0]: {}", args[0]);
+                if ("i".equals(args[0])) {
+                    Utils.exit(0);
+                }
                 if ("m".equals(args[0])) {
                     isMock = true;
                     questionsFactory = QuestionsFactoryFactory
