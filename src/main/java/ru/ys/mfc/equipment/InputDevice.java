@@ -67,6 +67,8 @@ public class InputDevice {
             usbDevice = UsbDevice.getUsbDevices()[0];
             tablet = new Tablet();
             tablet.usbConnect(usbDevice, true);
+            Thread.sleep(2000);
+//            tablet.reset();
             tablet.setInkingMode(Off);
             byte encodingFlag = ProtocolHelper.simulateEncodingFlag(
                     tablet.getProductId(),

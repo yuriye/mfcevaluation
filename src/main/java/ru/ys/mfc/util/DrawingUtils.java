@@ -2,9 +2,19 @@ package ru.ys.mfc.util;
 
 import com.WacomGSS.STU.Protocol.Capability;
 import com.WacomGSS.STU.Protocol.PenData;
+import com.WacomGSS.STU.Protocol.ProtocolHelper;
+import com.WacomGSS.STU.Protocol.RomStartImageData;
+import com.WacomGSS.STU.STUException;
+import com.WacomGSS.STU.Tablet;
+import ru.ys.mfc.equipment.InputDevice;
 
+import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.geom.Point2D;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 
 public class DrawingUtils {
@@ -103,5 +113,17 @@ public class DrawingUtils {
                 (float) penData.getY() * capability.getScreenHeight() / capability.getTabletMaxY());
     }
 
+
+    public static void loadAndShowImage(String fileName) throws IOException, STUException {
+        InputStream inputStream = DrawingUtils.class
+                .getClassLoader().getResourceAsStream(fileName);
+        BufferedImage image = null;
+        image = ImageIO.read(inputStream);
+        inputStream.close();
+        Tablet tablet = InputDevice.getInstance().getTablet();
+        byte[] bitmapData = ProtocolHelper.flatten(image, image.getWidth(), image.getHeight(),
+                InputDevice.getInstance().getIncodingMode());
+        tablet.writeImage(InputDevice.getInstance().getIncodingMode(), bitmapData);
+    }
 
 }

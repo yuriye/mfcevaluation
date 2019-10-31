@@ -1,6 +1,6 @@
 package ru.ys.mfc.view;
 
-import ru.ys.mfc.Main;
+import ru.ys.mfc.util.Utils;
 
 import javax.swing.*;
 import java.awt.*;
@@ -21,7 +21,7 @@ public class ProgressFrame extends JFrame {
         this.add(this.progressBar, BorderLayout.CENTER);
         JButton closeButton = new JButton("Закрыть");
         closeButton.addActionListener((actionEvent) -> {
-            Main.exit(0);
+            Utils.exit(0);
         });
         this.add(closeButton, BorderLayout.EAST);
         this.pack();

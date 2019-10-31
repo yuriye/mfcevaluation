@@ -169,30 +169,23 @@ public class QuestionForm implements ITabletHandler {
 
     @Override
     public void onPenData(PenData penData) {
+        processPressed(penData);
+    }
+
+    private void processPressed(PenData penData) {
+        LOGGER.debug("processPressed penData.getSw(): {} doNotProcessing: {}", penData.getSw(), doNotProcessing);
         if (penData.getSw() == 0) return;
         if (doNotProcessing) return;
         doNotProcessing = true;
-        pressedButton(penData);
-    }
-
-    private void pressedButton(PenData penData) {
         Point2D.Float point = DrawingUtils.tabletToScreen(penData, capability);
-        try {
-            if (cancelButton.getBounds().contains(Math.round(point.getX()), Math.round(point.getY()))) {
-                pressedButton = cancelButton;
-                doNotProcessing = true;
-                System.out.println("Нажали cancel - выходим из программы");
-                InputDevice.getInstance().getTablet().setClearScreen();
-                InputDevice.getInstance().getTablet().disconnect();
-            } else if (answerButton.getBounds().contains(Math.round(point.getX()), Math.round(point.getY()))) {
-                pressedButton = answerButton;
-                doNotProcessing = true;
-            } else {
-                pressedButton = null;
-                doNotProcessing = false;
-            }
-        } catch (STUException e) {
-            LOGGER.error("private void pressedButton(PenData penData)",e);
+        if (cancelButton.getBounds().contains(Math.round(point.getX()), Math.round(point.getY()))) {
+            pressedButton = cancelButton;
+            LOGGER.debug("Cancel button pressed");
+        } else if (answerButton.getBounds().contains(Math.round(point.getX()), Math.round(point.getY()))) {
+            pressedButton = answerButton;
+        } else {
+            pressedButton = null;
+            doNotProcessing = false;
         }
     }
 
@@ -221,10 +214,10 @@ public class QuestionForm implements ITabletHandler {
 
     @Override
     public void onPenDataTimeCountSequence(PenDataTimeCountSequence penDataTimeCountSequence) {
-        if (penDataTimeCountSequence.getSw() == 0) return;
-        if (doNotProcessing) return;
-        doNotProcessing = true;
-        pressedButton(penDataTimeCountSequence);
+//        if (penDataTimeCountSequence.getSw() == 0) return;
+//        if (doNotProcessing) return;
+//        doNotProcessing = true;
+        processPressed(penDataTimeCountSequence);
     }
 
 
