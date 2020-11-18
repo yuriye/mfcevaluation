@@ -49,7 +49,7 @@ public class Utils {
             InputDevice.getInstance().getTablet().setClearScreen();
             DrawingUtils.loadAndShowImage("mfclogo.jpg");
             Thread.sleep(1000);
-            InputDevice.getInstance().getTablet().disconnect();
+//            InputDevice.getInstance().getTablet().disconnect();
         } catch (Exception e) {
             LOGGER.error("public static void exit(int code)", e);
         }

@@ -30,6 +30,7 @@ public class Main {
 
 
     public static void main(String[] args) {
+        System.out.println("LOGGER=" + LOGGER.getName());
         try {
             String orderCode = "0000000";
             LOGGER.info("Код заявления: {}", (args.length > 0 ? args[0] : "null"));

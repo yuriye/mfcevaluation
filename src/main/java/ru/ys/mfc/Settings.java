@@ -13,7 +13,7 @@ public class Settings {
     private String getMkguQuestionnaires = "cpgu/action/getMkguQuestionnaires";
     private String postMkguQuestionnaires = "cpgu/action/sendMkguFormAnswers";
     private String sendMkguFormAnswers = "cpgu/action/sendMkguFormAnswers";
-    private String okato = "50401000000";
+    private String okato = "30401000000";
 
     private Settings() {
 
