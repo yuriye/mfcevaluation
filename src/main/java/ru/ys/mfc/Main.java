@@ -35,7 +35,7 @@ public class Main {
             String orderCode = "0000000";
             LOGGER.info("Код заявления: {}", (args.length > 0 ? args[0] : "null"));
             if (args.length > 0) {
-                LOGGER.info("args[0]: {}", args[0]);
+                LOGGER.debug("args[0]: {}", args[0]);
                 if ("i".equals(args[0])) {
                     Utils.exit(0);
                 }
@@ -48,7 +48,7 @@ public class Main {
                     orderCode = args[0];
                     questionsFactory = QuestionsFactoryFactory
                             .getQuestionsFactory("ru.ys.mfc.model.MKGUQuestions");
-                    LOGGER.debug("orderNumber: {}", orderCode);
+                    LOGGER.info("orderNumber: {}", orderCode);
                 }
             } else {
                 LOGGER.error("Не указан код заявления!");
@@ -75,6 +75,7 @@ public class Main {
             try {
                 progressFrame.setInformString("Осуществляется оценка...");
                 response = askQuestions(questions, orderCode);
+                LOGGER.info("response: {}", response);
             } catch (Exception e) {
                 LOGGER.error("Ошибка на response = askQuestions(questions, orderCode)", e);
                 Utils.exit(1);
@@ -86,10 +87,12 @@ public class Main {
                 progressFrame.setInformString("Осуществляется передача результата оценки...");
                 if (!"".equals(response)) {
                     postAnswers(orderCode, formVersion.get("version"), response);
-                    LOGGER.info("response: {}", response);
+                    LOGGER.info("response sended");
                 } else
+                    LOGGER.warn("empty response");
                     return;
             }
+
             progressFrame.setInformString("Передача данных завершена, оценка принята.");
             byeImage.show();
             Thread.sleep(10000);
@@ -106,15 +109,15 @@ public class Main {
         EstimationForm estimationForm = null;
         List<String[]> answers = new ArrayList<>();
         int progress = 0;
-        for (Question question :
-                questions) {
+        for (Question question : questions) {
+
             questionForm = new QuestionForm(question.getTitle());
             questionForm.waitForButtonPress();
             if (questionForm.getPressedButton().getId().equals("cancel")) {
                 progressFrame.setInformString("Пользователь прервал процесс оценки.");
                 LOGGER.info("Пользователь прервал процесс оценки.");
                 Thread.sleep(5000);
-                Utils.exit(1);
+                Utils.exit(0);
             }
 
             LOGGER.debug("question.getTitle(): {}", question.getTitle());
@@ -123,12 +126,16 @@ public class Main {
             String[] answer = new String[2];
             answer[0] = question.getIndicatorId();
             answer[1] = estimationForm.getPressedButton().getId();
+            LOGGER.debug("estimationForm.getPressedButton().getId() = {}", estimationForm.getPressedButton().getId());
             answers.add(answer);
             progressFrame.getProgressBar().setValue(++progress);
-            LOGGER.debug("Pressed button: {}", estimationForm.getPressedButton().getText());
+            LOGGER.info("Оценка: {} id: {}",
+                    estimationForm.getPressedButton().getText(),
+                    estimationForm.getPressedButton().getId());
         }
         InputDevice.getInstance().getTablet().setClearScreen();
         response = Utils.getAnswersQueryString(questionsFactory.getFormVersion().get("version"), orderCode, Utils.getRatesString(answers));
+        LOGGER.debug("response:\n {}", response);
         return response;
     }
 

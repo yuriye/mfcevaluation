@@ -29,6 +29,7 @@ public class QuestionForm implements ITabletHandler {
     private boolean doNotProcessing = false;
 
     public QuestionForm(String indicatorDescription) throws STUException {
+        pressedButton = null;
         doNotProcessing = false;
         tablet = InputDevice.getInstance().getTablet();
 //        if (tablet.isSupported(OperationModeType.KeyPad))
@@ -147,12 +148,25 @@ public class QuestionForm implements ITabletHandler {
     }
 
     public void waitForButtonPress() {
+        LOGGER.debug("Start QuestionForm.waitForButtonPress()");
+        int cntr = 0;
         try {
             while (pressedButton == null) {
                 Thread.sleep(500);
                 Thread.yield();
+                cntr++;
+                if (cntr > 4) {
+                    doNotProcessing = false;
+                } else if (cntr > 40) {
+                    doNotProcessing = false;
+                    pressedButton = answerButton;
+                    LOGGER.debug("QuestionForm: pressedButton = answerButton");
+                    LOGGER.debug("tablet.getStatus() == {}", tablet.getStatus());
+                    break;
+                }
             }
-        } catch (InterruptedException inte) {
+            LOGGER.debug("QuestionForm cntr = {}", cntr);
+        } catch (InterruptedException | STUException inte) {
             LOGGER.error("InterruptedException во время ожидания нажатия кнопки", inte);
         }
     }
@@ -174,8 +188,12 @@ public class QuestionForm implements ITabletHandler {
 
     private void processPressed(PenData penData) {
 //        LOGGER.debug("processPressed penData.getSw(): {} doNotProcessing: {}", penData.getSw(), doNotProcessing);
-        if (penData.getSw() == 0) return;
-        if (doNotProcessing) return;
+        if (penData.getSw() == 0) {
+            return;
+        }
+        if (doNotProcessing) {
+            return;
+        }
         doNotProcessing = true;
         Point2D.Float point = DrawingUtils.tabletToScreen(penData, capability);
         if (cancelButton.getBounds().contains(Math.round(point.getX()), Math.round(point.getY()))) {

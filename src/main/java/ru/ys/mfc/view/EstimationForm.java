@@ -29,8 +29,11 @@ public class EstimationForm implements ITabletHandler {
     private int pad = 5;
     private List<Answer> answers;
     private List<Button> buttons = new ArrayList<>();
+    private Button defaultButton;
+    private Button lastButton;
 
     public EstimationForm(List<Answer> answers) throws STUException {
+        pressedButton = null;
         this.answers = answers;
         tablet = InputDevice.getInstance().getTablet();
 
@@ -53,6 +56,7 @@ public class EstimationForm implements ITabletHandler {
                 throw new RuntimeException("Failed to connect to USB tablet, error " + e);
             }
         }
+
         tablet.setClearScreen();
         capability = tablet.getCapability();
 
@@ -94,6 +98,7 @@ public class EstimationForm implements ITabletHandler {
                     Color.WHITE,
                     new Color(224, 78, 57));
             buttons.add(button);
+            defaultButton = button;
         }
 
         for (int i = 0; i < buttons.size(); i++) {
@@ -136,11 +141,26 @@ public class EstimationForm implements ITabletHandler {
     }
 
     public void waitForButtonPress() {
+        LOGGER.debug("Start EstimaitionForm.waitForButtonPress()");
+        int cntr = 0;
         try {
             while (pressedButton == null) {
                 Thread.sleep(500);
                 Thread.yield();
+                cntr++;
+                if(cntr > 4) {
+                    doNotProcessing = false;
+                }
+                else if(cntr > 40) {
+                    pressedButton = defaultButton;
+                    LOGGER.debug("EstimationForm: pressedButton = defaultButton");
+                    if (lastButton != null)
+                        LOGGER.debug("lastButton.getId() = {}" + lastButton.getId());
+                    else
+                        LOGGER.debug("lastButton == null");
+                }
             }
+            LOGGER.debug("EstimaitionForm cntr = {}", cntr);
         } catch (InterruptedException inte) {
             LOGGER.error("public void waitForButtonPress()", inte);
         }
@@ -173,6 +193,7 @@ public class EstimationForm implements ITabletHandler {
                 doNotProcessing = true;
                 break;
             } else {
+                lastButton = pressedButton;
                 pressedButton = null;
                 doNotProcessing = false;
             }
