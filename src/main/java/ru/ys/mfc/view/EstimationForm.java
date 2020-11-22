@@ -176,28 +176,43 @@ public class EstimationForm implements ITabletHandler {
 //        System.out.println("onUnhandledReportData:" + bytes);
     }
 
-    @Override
-    public void onPenData(PenData penData) {
-        if (penData.getSw() == 0) return;
-        if (doNotProcessing) return;
+    private void processPressedButton(PenData penData) {
+        if (doNotProcessing || penData.getSw() == 0)
+            return;
         doNotProcessing = true;
-        pressedButton(penData);
+        Point2D.Float point = DrawingUtils.tabletToScreen(penData, capability);
+        pressedButton = getPressedButton(point);
+        if(pressedButton == null)
+            doNotProcessing = false;
+        lastButton = pressedButton;
     }
 
-    private void pressedButton(PenData penData) {
-        Point2D.Float point = DrawingUtils.tabletToScreen(penData, capability);
+    @Override
+    public void onPenData(PenData penData) {
+        if(penData.getPressure() <= 5)
+            return;
+        LOGGER.debug("onPenData penData: {}", penData.getPressure());
+        processPressedButton(penData);
+    }
+
+    @Override
+    public void onPenDataTimeCountSequence(PenDataTimeCountSequence penDataTimeCountSequence) {
+        if (penDataTimeCountSequence.getPressure() <= 5)
+            return;
+        LOGGER.debug("onPenDataTimeCountSequence penDataTimeCountSequence: {}", penDataTimeCountSequence.getPressure());
+        processPressedButton(penDataTimeCountSequence);
+    }
+
+
+    private Button getPressedButton(Point2D.Float point) {
+        Button button;
         for (int i = 0; i < buttons.size(); i++) {
-            Button button = buttons.get(i);
+            button = buttons.get(i);
             if (button.getBounds().contains(Math.round(point.getX()), Math.round(point.getY()))) {
-                pressedButton = button;
-                doNotProcessing = true;
-                break;
-            } else {
-                lastButton = pressedButton;
-                pressedButton = null;
-                doNotProcessing = false;
+                return button;
             }
         }
+        return null;
     }
 
     public boolean isDoNotProcessing() {
@@ -223,13 +238,6 @@ public class EstimationForm implements ITabletHandler {
 
     }
 
-    @Override
-    public void onPenDataTimeCountSequence(PenDataTimeCountSequence penDataTimeCountSequence) {
-        if (penDataTimeCountSequence.getSw() == 0) return;
-        if (doNotProcessing) return;
-        doNotProcessing = true;
-        pressedButton(penDataTimeCountSequence);
-    }
 
     @Override
     public void onPenDataTimeCountSequenceEncrypted(PenDataTimeCountSequenceEncrypted penDataTimeCountSequenceEncrypted) {

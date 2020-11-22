@@ -27,6 +27,7 @@ public class QuestionForm implements ITabletHandler {
     private ru.ys.mfc.view.Button cancelButton;
     private ru.ys.mfc.view.Button pressedButton;
     private boolean doNotProcessing = false;
+    private Button lastButton;
 
     public QuestionForm(String indicatorDescription) throws STUException {
         pressedButton = null;
@@ -181,30 +182,44 @@ public class QuestionForm implements ITabletHandler {
 
     }
 
-    @Override
-    public void onPenData(PenData penData) {
-        processPressed(penData);
-    }
+    private Button getPressedButton(Point2D.Float point) {
+        Button button = null;
 
-    private void processPressed(PenData penData) {
-//        LOGGER.debug("processPressed penData.getSw(): {} doNotProcessing: {}", penData.getSw(), doNotProcessing);
-        if (penData.getSw() == 0) {
-            return;
-        }
-        if (doNotProcessing) {
-            return;
-        }
-        doNotProcessing = true;
-        Point2D.Float point = DrawingUtils.tabletToScreen(penData, capability);
         if (cancelButton.getBounds().contains(Math.round(point.getX()), Math.round(point.getY()))) {
-            pressedButton = cancelButton;
+            button = cancelButton;
             LOGGER.debug("Cancel button pressed");
         } else if (answerButton.getBounds().contains(Math.round(point.getX()), Math.round(point.getY()))) {
-            pressedButton = answerButton;
-        } else {
-            pressedButton = null;
-            doNotProcessing = false;
+            button = answerButton;
         }
+
+        return button;
+    }
+
+    private void processPressedButton(PenData penData) {
+        if (doNotProcessing || penData.getSw() == 0) {
+            return;
+        }
+
+        doNotProcessing = true;
+        Point2D.Float point = DrawingUtils.tabletToScreen(penData, capability);
+        pressedButton = getPressedButton(point);
+        if(pressedButton == null)
+            doNotProcessing = false;
+        lastButton = pressedButton;
+    }
+
+    @Override
+    public void onPenData(PenData penData) {
+        if (penData.getPressure() <= 0)
+            return;
+        processPressedButton(penData);
+    }
+
+    @Override
+    public void onPenDataTimeCountSequence(PenDataTimeCountSequence penDataTimeCountSequence) {
+        if (penDataTimeCountSequence.getPressure() <= 0)
+            return;
+        processPressedButton(penDataTimeCountSequence);
     }
 
     public boolean isDoNotProcessing() {
@@ -228,11 +243,6 @@ public class QuestionForm implements ITabletHandler {
     @Override
     public void onPenDataEncryptedOption(PenDataEncryptedOption penDataEncryptedOption) {
 
-    }
-
-    @Override
-    public void onPenDataTimeCountSequence(PenDataTimeCountSequence penDataTimeCountSequence) {
-        processPressed(penDataTimeCountSequence);
     }
 
 
