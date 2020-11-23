@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.ys.mfc.equipment.InputDevice;
 import ru.ys.mfc.mkgu.HttpAdapter;
+import ru.ys.mfc.model.Answer;
 import ru.ys.mfc.model.Question;
 import ru.ys.mfc.model.QuestionsFactory;
 import ru.ys.mfc.util.ByeImage;
@@ -16,6 +17,7 @@ import ru.ys.mfc.view.QuestionForm;
 
 import javax.swing.*;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
@@ -95,7 +97,7 @@ public class Main {
 
             progressFrame.setInformString("Передача данных завершена, оценка принята.");
             byeImage.show();
-            Thread.sleep(10000);
+            Thread.sleep(5000);
             Utils.exit(0);
         } catch (Exception e) {
             LOGGER.error("Ошибка", e);
@@ -121,7 +123,16 @@ public class Main {
             }
 
             LOGGER.debug("question.getTitle(): {}", question.getTitle());
-            estimationForm = new EstimationForm(question.getCandidates());
+
+            List<Answer> sortedQuestios = question.getCandidates();
+            sortedQuestios.sort(new Comparator<Answer>() {
+                @Override
+                public int compare(Answer o1, Answer o2) {
+                    return Integer.parseInt(o2.getId()) - Integer.parseInt(o1.getId());
+                }
+            });
+
+            estimationForm = new EstimationForm(sortedQuestios);
             estimationForm.waitForButtonPress();
             String[] answer = new String[2];
             answer[0] = question.getIndicatorId();
