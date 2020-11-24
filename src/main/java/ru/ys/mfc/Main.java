@@ -32,7 +32,7 @@ public class Main {
 
 
     public static void main(String[] args) {
-        System.out.println("LOGGER=" + LOGGER.getName());
+//        System.out.println("LOGGER=" + LOGGER.getName());
         try {
             String orderCode = "0000000";
             LOGGER.info("Код заявления: {}", (args.length > 0 ? args[0] : "null"));
@@ -78,26 +78,26 @@ public class Main {
                 progressFrame.setInformString("Осуществляется оценка...");
                 response = askQuestions(questions, orderCode);
                 LOGGER.info("response: {}", response);
+                ByeImage byeImage = new ByeImage("Спасибо за Вашу оценку!");
+                byeImage.show();
             } catch (Exception e) {
                 LOGGER.error("Ошибка на response = askQuestions(questions, orderCode)", e);
                 Utils.exit(1);
             }
-
-            ByeImage byeImage = new ByeImage("Спасибо за Вашу оценку!");
 
             if (!isMock) {
                 progressFrame.setInformString("Осуществляется передача результата оценки...");
                 if (!"".equals(response)) {
                     postAnswers(orderCode, formVersion.get("version"), response);
                     LOGGER.info("response sended");
-                } else
+                } else {
                     LOGGER.warn("empty response");
-                    return;
+                    Utils.exit(1);
+                }
             }
-
             progressFrame.setInformString("Передача данных завершена, оценка принята.");
-            byeImage.show();
             Thread.sleep(5000);
+            progressFrame.dispose();
             Utils.exit(0);
         } catch (Exception e) {
             LOGGER.error("Ошибка", e);
