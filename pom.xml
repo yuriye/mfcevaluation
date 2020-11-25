@@ -42,6 +42,10 @@
                         <manifest>
                             <mainClass>com.ys.mfc.Main</mainClass>
                         </manifest>
+                        <manifestEntries>
+                            <Class-Path>.</Class-Path>
+                            <Class-Path>./mfcevaluation-1.0-SNAPSHOT-jar-with-dependencies.jar</Class-Path>
+                        </manifestEntries>
                     </archive>
                 </configuration>
             </plugin>
@@ -52,6 +56,9 @@
                         <manifest>
                             <mainClass>ru.ys.mfc.Main</mainClass>
                         </manifest>
+                        <manifestEntries>
+                            <Class-Path>. ./mfcevaluation-1.0-SNAPSHOT-jar-with-dependencies.jar</Class-Path>
+                        </manifestEntries>
                     </archive>
                     <descriptorRefs>
                         <descriptorRef>jar-with-dependencies</descriptorRef>
@@ -120,20 +127,19 @@
             <version>4.5.5</version>
         </dependency>
         <!-- Logging with SLF4J & LogBack -->
-        <!--dependency>
+
+        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
             <version>${slf4j.version}</version>
             <scope>compile</scope>
-        </dependency-->
-
+        </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>jcl-over-slf4j</artifactId>
             <version>${slf4j.version}</version>
             <scope>runtime</scope>
         </dependency>
-
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>

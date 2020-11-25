@@ -23,16 +23,12 @@ import java.util.Map;
 
 public class Main {
     private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
-
     private static InputDevice inputDevice;
     private static QuestionsFactory questionsFactory;
     private static boolean isMock = false;
-
     private static ProgressFrame progressFrame;
 
-
     public static void main(String[] args) {
-//        System.out.println("LOGGER=" + LOGGER.getName());
         try {
             String orderCode = "0000000";
             LOGGER.info("Код заявления: {}", (args.length > 0 ? args[0] : "null"));
@@ -97,6 +93,7 @@ public class Main {
             }
             progressFrame.setInformString("Передача данных завершена, оценка принята.");
             Thread.sleep(5000);
+            Thread.yield();
             progressFrame.dispose();
             Utils.exit(0);
         } catch (Exception e) {

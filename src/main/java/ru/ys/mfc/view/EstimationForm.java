@@ -148,10 +148,10 @@ public class EstimationForm implements ITabletHandler {
                 Thread.sleep(500);
                 Thread.yield();
                 cntr++;
-                if(cntr > 4) {
+                if(cntr % 4 == 0) {
                     doNotProcessing = false;
                 }
-                else if(cntr > 40) {
+                else if(cntr > 120) {
                     pressedButton = defaultButton;
                     LOGGER.debug("EstimationForm: pressedButton = defaultButton");
                     if (lastButton != null)
