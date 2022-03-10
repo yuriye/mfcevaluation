@@ -16,6 +16,7 @@ import ru.ys.mfc.view.ProgressFrame;
 import ru.ys.mfc.view.QuestionForm;
 
 import javax.swing.*;
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -32,6 +33,8 @@ public class Main {
         try {
             String orderCode = "0000000";
             LOGGER.info("Код заявления: {}", (args.length > 0 ? args[0] : "null"));
+            LOGGER.info("Hostname: {}", InetAddress.getLocalHost().getHostName());
+            LOGGER.info("User: {}", System.getProperty("user.name"));
             if (args.length > 0) {
                 LOGGER.debug("args[0]: {}", args[0]);
                 if ("i".equals(args[0])) {
@@ -56,13 +59,14 @@ public class Main {
             questionsFactory.setOrderCode(orderCode);
             Map<String, String> formVersion;
             formVersion = questionsFactory.getFormVersion();
+            String status = formVersion.get("status");
 
-            if ("ALREADY_FILLED".equals(formVersion.get("status"))) {
-                LOGGER.info("Оценка заявления с кодом " + orderCode + " уже была произведена.");
+            if ("ALREADY_FILLED".equals(status)) {
+                LOGGER.info("Оценка заявления с кодом {} уже была произведена. Status = {}", orderCode, status);
                 JOptionPane.showMessageDialog(null, "Оценка заявления с кодом " + orderCode + " уже была произведена.");
                 Utils.exit(0);
-            } else if (!"OK".equals(formVersion.get("status"))) {
-                LOGGER.info("Заявление с кодом " + orderCode + " не найдено");
+            } else if (!"OK".equals(status)) {
+                LOGGER.info("Заявление с кодом {} не найдено. Status={}", orderCode, status);
                 JOptionPane.showMessageDialog(null, "Заявление с кодом " + orderCode + " не найдено");
                 Utils.exit(0);
             }

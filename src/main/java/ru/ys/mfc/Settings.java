@@ -5,14 +5,22 @@ public class Settings {
     private static Settings instance;
 
 
-    private String mkguUrlString = "http://10.2.139.25/mkgu/server/";
+//    private String mkguUrlString = "http://10.2.139.25/mkgu/server/";
+    private String mkguUrlString = "http://ais.md.int/mkgu/server/";
     private String getFreeTime = "getfreetime";
     private String getManagedOptions = "getmanagedoptions";
-    private String getOrderStatus = "cpgu/action/getOrderStatusTitle";
-    private String getMkguFormVersion = "cpgu/action/getMkguFormVersion";
-    private String getMkguQuestionnaires = "cpgu/action/getMkguQuestionnaires";
-    private String postMkguQuestionnaires = "cpgu/action/sendMkguFormAnswers";
-    private String sendMkguFormAnswers = "cpgu/action/sendMkguFormAnswers";
+//    private String getOrderStatus = "cpgu/action/getOrderStatusTitle";
+//    private String getMkguFormVersion = "cpgu/action/getMkguFormVersion";
+//    private String getMkguQuestionnaires = "cpgu/action/getMkguQuestionnaires";
+//    private String postMkguQuestionnaires = "cpgu/action/sendMkguFormAnswers";
+//    private String sendMkguFormAnswers = "cpgu/action/sendMkguFormAnswers";
+
+    private String getOrderStatus = "cpgu/action/GetOrderStatusTitle";
+    private String getMkguFormVersion = "cpgu/action/GetMkguFormVersion";
+    private String getMkguQuestionnaires = "cpgu/action/GetMkguQuestionnaires";
+    private String postMkguQuestionnaires = "cpgu/action/SendMkguFormAnswers";
+    private String sendMkguFormAnswers = "cpgu/action/SendMkguFormAnswers";
+
     private String okato = "30401000000";
 
     private Settings() {

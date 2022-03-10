@@ -10,11 +10,7 @@ public class QuestionsFactoryFactory {
         ru.ys.mfc.model.QuestionsFactory questionsFactory = null;
         try {
             questionsFactory = (ru.ys.mfc.model.QuestionsFactory) Class.forName(questionsFactoryClassName).newInstance();
-        } catch (InstantiationException e) {
-            LOGGER.error("", e);
-        } catch (IllegalAccessException e) {
-            LOGGER.error("", e);
-        } catch (ClassNotFoundException e) {
+        } catch (Exception e) {
             LOGGER.error("", e);
         }
         return questionsFactory;

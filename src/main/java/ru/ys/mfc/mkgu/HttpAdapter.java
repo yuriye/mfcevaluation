@@ -44,6 +44,7 @@ public class HttpAdapter {
 
         try {
             InputStreamReader isr;
+            //String urlString = settings.getMkguUrlString() + settings.getGetMkguFormVersion() + "?orderNumber=" + URLEncoder.encode(orderNumber, "UTF-8");
             String urlString = settings.getMkguUrlString() + settings.getGetMkguFormVersion() + "?orderNumber=" + URLEncoder.encode(orderNumber, "UTF-8");
 
             System.out.println(urlString);
@@ -51,9 +52,17 @@ public class HttpAdapter {
             URL url = new URL(urlString);
             isr = new InputStreamReader(url.openStream(), "UTF-8");
 
+//            int charCode;
+//            StringBuilder stringBuilder = new StringBuilder();
+//            while ((charCode = isr.read()) != -1) { // Read each character.
+//                stringBuilder.append((char) charCode);
+//            }
+//            System.out.println(stringBuilder.toString());
+
             try {
                 Type queueModelType = (new TypeToken<Map<String, String>>() {
                 }).getType();
+
                 result = (Map) this.gson.fromJson(isr, queueModelType);
             } finally {
                 isr.close();
